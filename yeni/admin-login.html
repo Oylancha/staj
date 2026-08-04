@@ -83,6 +83,10 @@
   </div>
 
   <script>
+    if (localStorage.getItem('admin_token')) {
+      window.location.href = 'admin-panel.html';
+    }
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       

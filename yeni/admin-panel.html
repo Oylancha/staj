@@ -143,6 +143,25 @@
       .tree li::before, .tree li::after, .tree ul ul::before { display: none; }
       .tree li { padding: 10px; }
     }
+    
+    .tree-node {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .delete-btn {
+      background: var(--accent-red);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -173,6 +192,10 @@
         <div class="form-group">
           <label for="p_image">Ürün Resmi Yükle</label>
           <input type="file" id="p_image" accept="image/*" style="background: transparent; border: none; padding: 0;">
+        </div>
+        <div class="form-group">
+          <label for="p_manual">Teknik Kılavuz Yükle (PDF/DOC) (İsteğe Bağlı)</label>
+          <input type="file" id="p_manual" accept=".pdf,.doc,.docx" style="background: transparent; border: none; padding: 0;">
         </div>
         <div class="form-group">
           <label for="p_parent">Bağlı Olduğu Sistem (Parent)</label>
@@ -243,12 +266,34 @@
       
       let html = '<ul>';
       children.forEach(child => {
-        html += `<li><a href="#">${child.name}</a>`;
+        html += `<li>
+          <div class="tree-node">
+            <a href="item.html?id=${child.id}" target="_blank">${child.name}</a>
+            <button class="delete-btn" onclick="deleteProduct(${child.id}, event)">X</button>
+          </div>`;
         html += buildTreeHTML(child.id);
         html += `</li>`;
       });
       html += '</ul>';
       return html;
+    }
+
+    async function deleteProduct(id, e) {
+      if (e) e.preventDefault();
+      if (!confirm('Bu öğeyi silmek istediğinize emin misiniz? Alt öğeler de silinebilir veya ayrılabilir.')) return;
+      try {
+        const res = await fetch(`/api/products/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          fetchProducts();
+        } else {
+          alert('Silme işlemi başarısız.');
+        }
+      } catch (err) {
+        alert('Sunucu hatası.');
+      }
     }
 
     function renderTree() {
@@ -262,9 +307,10 @@
       e.preventDefault();
       
       const fileInput = document.getElementById('p_image');
+      const manualInput = document.getElementById('p_manual');
       let finalImageUrl = "";
+      let finalManualUrl = null;
 
-      // If a file is selected, upload it first
       if (fileInput.files.length > 0) {
         const formData = new FormData();
         formData.append("file", fileInput.files[0]);
@@ -286,11 +332,33 @@
           return;
         }
       }
+
+      if (manualInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append("file", manualInput.files[0]);
+        try {
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+          if (uploadRes.ok) {
+            const data = await uploadRes.json();
+            finalManualUrl = data.url;
+          } else {
+            alert("Kılavuz yüklenirken hata oluştu.");
+            return;
+          }
+        } catch (err) {
+          alert("Kılavuz yükleme servisine ulaşılamadı.");
+          return;
+        }
+      }
       
       const payload = {
         name: document.getElementById('p_name').value,
         description: document.getElementById('p_desc').value,
         image_url: finalImageUrl,
+        manual_url: finalManualUrl,
         parent_id: document.getElementById('p_parent').value ? parseInt(document.getElementById('p_parent').value) : null
       };
 

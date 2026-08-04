@@ -27,125 +27,55 @@
 
   <div class="container animate-fade-in delay-100">
     <div style="text-align: center; margin-bottom: 3rem;">
-      <h1 style="font-size: 3rem; color: var(--accent-red);">Sensör Modüllerimiz</h1>
-      <p style="color: var(--text-muted); font-size: 1.1rem;">Kullanım Alanlarına Göre Geliştirdiğimiz Akıllı Sensör ve Kontrol Sistemleri</p>
+      <h1 style="font-size: 3rem; color: var(--accent-red);">Tüm Ürünler ve Projeler</h1>
+      <p style="color: var(--text-muted); font-size: 1.1rem;">Katalogumuzdaki Tüm Akıllı Sistemler ve Çözümler</p>
     </div>
 
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/Foto¦şraf-0802.jpg" alt="Sensör 5" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Sensör 5</h3>
-          <p class="card-desc">Şebeke voltajı ile çalışan, 20 ampere kadar güçlü kontrol sağlayan modül. Endüstriyel kullanım için özel tasarım.</p>
-          <div class="card-action">
-            <a href="items/sensor-5.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/IMG_3723.JPG" alt="Sensör D" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Sensör D</h3>
-          <p class="card-desc">Deprem, yangın, sel gibi doğal afet anlarında erken uyarı sistemi sunan ve enerjiyi güvenli şekilde kesen akıllı modül.</p>
-          <div class="card-action">
-            <a href="items/sensor-d.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/IMG_2004.JPG" alt="Sensör X" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Sensör X</h3>
-          <p class="card-desc">RS485 haberleşme protokolü ile bilgisayarınıza entegre olur. Sahadaki panolarınızı dijital masaüstü ortamına sanal olarak taşır.</p>
-          <div class="card-action">
-            <a href="items/sensor-x.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
+    <div class="card-grid" id="dynamic-products-grid">
+      <p style="text-align: center; color: var(--text-muted); width: 100%;">Ürünler yükleniyor...</p>
     </div>
   </div>
 
-  <div class="container animate-fade-in delay-200">
-    <div style="text-align: center; margin-top: 4rem; margin-bottom: 3rem;">
-      <h1 style="font-size: 3rem; color: var(--accent-red);">De-icing Projelerimiz</h1>
-      <p style="color: var(--text-muted); font-size: 1.1rem;">TV, Uydu, RX, TX Antenler İçin Zorlu Koşullara Meydan Okuyan Çözümler</p>
-    </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const grid = document.getElementById('dynamic-products-grid');
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Network response was not ok');
+        const products = await res.json();
+        
+        if (products.length === 0) {
+          grid.innerHTML = '<p style="text-align: center; color: var(--text-muted); width: 100%;">Henüz hiç ürün eklenmemiş.</p>';
+          return;
+        }
 
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/DSC04173.JPG" alt="Blower De-icing" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Blower De-icing</h3>
-          <p class="card-desc">Anten arka yüzünde yüksek performanslı blower ile homojen sıcak hava sirkülasyonu sağlayan gelişmiş bir sistem.</p>
-          <div class="card-action">
-            <a href="items/blower-de-icing.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/DSC04211.JPG" alt="Branda De-icing" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Branda De-icing</h3>
-          <p class="card-desc">Çift yüz silikon kaplı, çapraz cam elyaf dokumalı özel yapısıyla, istenen her anten ebatı için esnek üretim imkanı sunar.</p>
-          <div class="card-action">
-            <a href="items/branda-de-icing.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/IMG_3694.JPG" alt="Radom De-icing" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Radom De-icing</h3>
-          <p class="card-desc">Anten yapısına uygun özel dikişleri ve yan çeper sarımlarıyla, kar ve buzlanmaya karşı üstün radom koruması sağlar.</p>
-          <div class="card-action">
-            <a href="items/radom-de-icing.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/8ddeb8e2-a34c-4172-a97f-a9b6242e1bf6.jpg" alt="Termoplastik De-icing" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Termoplastik De-icing</h3>
-          <p class="card-desc">Özel rölyef kalıplarla üretilen, yaklaşık 2mm et kalınlığına sahip termoplastik yapısıyla en ekstrem koşullar için idealdir.</p>
-          <div class="card-action">
-            <a href="items/termoplastik-de-icing.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-img-container">
-          <img src="images/panel.bmp" alt="Ped De-icing" class="card-img">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">Ped De-icing</h3>
-          <p class="card-desc">Sac antenler için arkası yapışkanlı pratik tasarım. Isıyı doğrudan ve en düşük kayıpla anten yüzeyine ileterek verimliliği artırır.</p>
-          <div class="card-action">
-            <a href="items/ped-de-icing.html" class="btn">Detayları İncele</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+        grid.innerHTML = ''; // Clear loading text
+        
+        products.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const shortDesc = p.description.length > 100 ? p.description.substring(0, 100) + '...' : p.description;
+          
+          card.innerHTML = `
+            <div class="card-img-container">
+              <img src="${p.image_url}" alt="${p.name}" class="card-img" onerror="this.src='images/placeholder.jpg'">
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">${p.name}</h3>
+              <p class="card-desc">${shortDesc}</p>
+              <div class="card-action">
+                <a href="item.html?id=${p.id}" class="btn">Detayları İncele</a>
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        grid.innerHTML = '<p style="text-align: center; color: var(--accent-red); width: 100%;">Ürünler yüklenirken bir hata oluştu.</p>';
+      }
+    });
+  </script>
 
   <footer class="footer">
     <p class="footer-text">© 2026 İkies Elektronik. Tüm Hakları Saklıdır. | <a href="admin-login.html" style="color: var(--text-muted); opacity: 0.5;">Yönetici Girişi</a></p>
