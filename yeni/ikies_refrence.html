@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keep signals warm.</title>
+  <link rel="stylesheet" href="CSS/navbar.css">
+  <link rel="stylesheet" href="CSS/reference.css">
+  <link rel="icon" type="image/png" href="image/logo/logo.png">
+</head>
+<body style="background: url('image/arkaplan/about2.png') no-repeat center center fixed; background-size: cover;">
+
+  <!-- Navbar -->
+ <nav class="navbar">
+    <div class="logo-container">
+      
+      <a href="index.html"><img src="image/logo/logo.png" alt="Logo" class="logo" /></a>
+      <a href="index.html"><span class="logo-text">İkies Elektronik</span></a>
+    </div>
+    <button class="menu-toggle">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Anasayfa</a></li>
+      <li><a href="about.html">Hakkımızda</a></li>
+      <li><a href="projects.html">Projeler</a></li>
+      <li><a href="refrence.html">Referans</a></li>
+      <li><a href="contact.html">İletişim</a></li>
+    </ul>
+  </nav>
+
+
+  <!-- Referans İçerik -->
+  <div class="reference-container">
+    <h1>Referanslarımız</h1>
+    <div class="reference-grid">
+      <!-- Örnek 15 adet resim -->
+      <a href="24.html" target=""><img src="image/reference/24.png" alt="Referans 1"></a>
+      <a href="andolu.html" target=""><img src="image/reference/anadoluajansı.png" alt="Referans 2"></a>
+      <a href="aselsan.html" target=""><img src="image/reference/aselsan.png" alt="Referans 3"></a>
+      <a href="Atv.html" target=""><img src="image/reference/atv.png" alt="Referans 4"></a>
+      <a href="bein.html" target=""><img src="image/reference/Bein_sport.png" alt="Referans 5"></a>
+      <a href="dıgıturk.html" target=""><img src="image/reference/Digiturk.png" alt="Referans 6"></a>
+      <a href="jandarma.html" target=""><img src="image/reference/Jandarma.png" alt="Referans 7"></a>
+      <a href="kanald.html" target=""><img src="image/reference/kanald.png" alt="Referans 8"></a>
+      <a href="kara.html" target=""><img src="image/reference/kara.png" alt="Referans 9"></a>
+      <a href="meb.html" target=""><img src="image/reference/meb.png" alt="Referans 10"></a>
+      <a href="ntv.html" target=""><img src="image/reference/NTV_logo.png" alt="Referans 11"></a>
+      <a href="show.html" target=""><img src="image/reference/show.png" alt="Referans 12"></a>
+      <a href="trt.html" target=""><img src="image/reference/trt.png" alt="Referans 13"></a>
+      <a href="turk.html" target=""><img src="image/reference/turk.png" alt="Referans 14"></a>
+      <a href="turkSAT.html" target=""><img src="image/reference/turksat.png" alt="Referans 15"></a>
+      <a href="kablo.html" target=""><img src="image/reference/Turksat_Kablo.png" alt="Referans 15"></a>
+      <a href="ısnet.html" target=""><img src="image/reference/ısnet.png" alt="Referans 15"></a>
+
+    </div>
+  </div>
+
+  <script>
+    const toggleButton = document.querySelector(".menu-toggle");
+    const navLinks = document.querySelector(".nav-links");
+    toggleButton.addEventListener("click", () => {
+      navLinks.classList.toggle("show");
+    });
+  </script>
+
+</body>
+</html>

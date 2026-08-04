@@ -1,0 +1,16 @@
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+
+# Databases
+*.db
+*.sqlite3
+
+# Uploads
+images/
+
+# MacOS
+.DS_Store

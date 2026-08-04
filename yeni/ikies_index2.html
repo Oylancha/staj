@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep signals warm.</title>
+    <link rel="stylesheet" href="CSS/navbar.css">
+    <link rel="stylesheet" href="CSS/homepage.css">
+    <link rel="icon" type="image/png" href="image/logo/logo.png">
+</head>
+<body id="homepage">
+    <nav class="navbar">
+    <div class="logo-container">
+      
+      <a href="index.html"><img src="image/logo/logo.png" alt="Logo" class="logo" /></a>
+      <a href="index.html"><span class="logo-text">İkies Elektronik</span></a>
+    </div>
+    <button class="menu-toggle">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Anasayfa</a></li>
+      <li><a href="about.html">Hakkımızda</a></li>
+      <li><a href="projects.html">Projeler</a></li>
+      <li><a href="refrence.html">Referans</a></li>
+      <li><a href="contact.html">İletişim</a></li>
+    </ul>
+  </nav>
+<!--Slider-->
+ <div class="slider">
+    <img src="image/arkaplan/image1.png" class="slide active">
+    <img src="image/arkaplan/image2.png" class="slide">
+    <img src="image/arkaplan/image3.png" class="slide">
+    <img src="image/arkaplan/image4.png" class="slide">
+    <img src="image/arkaplan/image5.png" class="slide">
+    <img src="image/arkaplan/image6.jpg" class="slide">
+    <img src="image/arkaplan/image7.png" class="slide">
+  </div>
+<!--Slider end-->
+
+  <!-- JavaScript -->
+<script>
+    const slides = document.querySelectorAll(".slide");
+    let current = 0;
+
+    function showNextSlide() {
+      slides[current].classList.remove("active");
+      current = (current + 1) % slides.length;
+      slides[current].classList.add("active");
+    }
+
+    setInterval(showNextSlide, 10000); // 10 saniyede bir geçiş
+
+    const toggleButton = document.querySelector(".menu-toggle");
+    const navLinks = document.querySelector(".nav-links");
+    toggleButton.addEventListener("click", () => {
+      navLinks.classList.toggle("show");
+    });
+  </script>
+  <!-- JavaScript end-->
+</body>
+</html>

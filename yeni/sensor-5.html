@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sensör 5 | İkies Elektronik</title>
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .item-detail { max-width: 900px; margin: 4rem auto; display: flex; flex-direction: column; gap: 2rem; }
+    .item-img { width: 100%; height: auto; max-height: 500px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); }
+    .item-title { font-size: 2.5rem; color: var(--accent-red); }
+    .item-desc { font-size: 1.1rem; color: var(--text-muted); line-height: 1.8; text-align: justify; }
+    .feature-list { list-style: disc inside; margin-top: 1rem; color: var(--text-main); }
+    .feature-list li { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo-container">
+      <a href="../index.html" class="logo-text">İkies Elektronik</a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Anasayfa</a></li>
+      <li><a href="../projects.html" style="color: var(--accent-red);">Ürünler & Projeler</a></li>
+      <li><a href="../contact.html">İletişim</a></li>
+      <li><a href="../cart.html" class="cart-nav-link">Sepet <span id="cart-badge" style="display:none;">0</span></a></li>
+    </ul>
+  </nav>
+
+  <div class="container animate-fade-in delay-100">
+    <div class="item-detail">
+      <img src="../../eski/genel resimler/Foto¦şraf-0802.jpg" alt="Sensör 5" class="item-img">
+      <div>
+        <h1 class="item-title">Sensör 5</h1>
+        <p class="item-desc">
+          Şebeke voltajı ile çalışabilen Sensör 5, 20 ampere kadar güçlü ve stabil kontrol sağlayan gelişmiş bir pano modülüdür. 
+          Yüksek akım ihtiyacı olan sistemlerde, sensörler ve kontrol elemanları kolaylıkla ek panolara taşınabilir. Bu esnek mimari 
+          sayesinde kurulumu ve bakımı son derece kolaydır. Aşırı yük koruması ve dalgalanmalara karşı entegre güvenlik sistemleri ile 
+          donatılmıştır.
+        </p>
+        <ul class="feature-list">
+          <li>20 Ampere kadar kesintisiz güç kontrolü</li>
+          <li>Şebeke voltajı ile doğrudan uyumlu çalışma</li>
+          <li>Ek pano entegrasyonu ile esnek kullanım</li>
+          <li>Yüksek dayanıklılığa sahip endüstriyel standartlar</li>
+        </ul>
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
+          <input type="number" id="qty-input" value="1" min="1" style="width: 80px; padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color); background: #111; color: #fff;">
+          <button class="btn" onclick="window.cart.addItem('Sensör 5', document.getElementById('qty-input').value)">Sepete Ekle</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>
