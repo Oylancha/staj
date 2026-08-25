@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Girişi | İkies Elektronik</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: var(--bg-dark);
+    }
+    .login-container {
+      background-color: var(--bg-card);
+      padding: 3rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-container h1 {
+      color: var(--accent-red);
+      margin-bottom: 2rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      font-weight: 500;
+    }
+    .form-group input {
+      padding: 0.75rem;
+      background-color: #111;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-main);
+      font-family: var(--font-family);
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-red);
+    }
+    .error-msg {
+      color: var(--accent-red);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="login-container animate-fade-in">
+    <div class="logo-container" style="justify-content: center; margin-bottom: 1rem;">
+      <span class="logo-text">İkies Elektronik</span>
+    </div>
+    <h1>Yönetici Paneli</h1>
+    
+    <div class="error-msg" id="error-msg">Geçersiz kullanıcı adı veya şifre.</div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">Kullanıcı Adı</label>
+        <input type="text" id="username" required placeholder="admin">
+      </div>
+      <div class="form-group">
+        <label for="password">Şifre</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;" id="login-btn">Giriş Yap</button>
+    </form>
+    <a href="index.html" style="display: block; margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted);">← Anasayfaya Dön</a>
+  </div>
+
+  <script>
+    if (localStorage.getItem('admin_token')) {
+      window.location.href = 'admin-panel.html';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('error-msg');
+      const btn = document.getElementById('login-btn');
+      
+      btn.textContent = "Lütfen bekleyin...";
+      btn.disabled = true;
+      errorMsg.style.display = 'none';
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem('admin_token', data.access_token);
+          window.location.href = 'admin-panel.html';
+          return;
+        } else {
+          errorMsg.textContent = "Geçersiz kullanıcı adı veya şifre.";
+          errorMsg.style.display = 'block';
+          btn.textContent = "Giriş Yap";
+          btn.disabled = false;
+          return;
+        }
+      } catch (err) {
+        // Offline / Live Server mode fallback
+        if (username === 'admin' && password === 'admin123') {
+          const mockToken = 'offline_token_' + Date.now();
+          localStorage.setItem('admin_token', mockToken);
+          window.location.href = 'admin-panel.html';
+          return;
+        } else {
+          errorMsg.textContent = "Hata: Sunucu çevrimdışı. Yerel mod için (Kullanıcı: admin / Şifre: admin123) kullanın.";
+          errorMsg.style.display = 'block';
+          btn.textContent = "Giriş Yap";
+          btn.disabled = false;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

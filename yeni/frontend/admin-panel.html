@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Paneli | İkies Elektronik</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .admin-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 3rem;
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 5%;
+    }
+    
+    .panel-section {
+      background-color: var(--bg-card);
+      padding: 2rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .panel-section h2 {
+      color: var(--accent-red);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+      font-weight: 500;
+    }
+    
+    .form-group input, .form-group textarea, .form-group select {
+      padding: 0.75rem;
+      background-color: #111;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-main);
+      font-family: var(--font-family);
+    }
+
+    /* ── Tree Toolbar ── */
+    .tree-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .tree-toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #0d0d0d;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px 6px;
+    }
+
+    .tree-toolbar-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      border-radius: 4px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+    }
+    .tree-toolbar-btn:hover {
+      background: #222;
+      color: var(--text-main);
+    }
+    .tree-toolbar-btn.active {
+      background: var(--accent-red);
+      color: #fff;
+    }
+
+    .zoom-label {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 40px;
+      text-align: center;
+      user-select: none;
+    }
+
+    .tree-toolbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border-color);
+      margin: 0 4px;
+    }
+
+    /* ── Tree Viewport & Canvas ── */
+    .tree-viewport {
+      overflow: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: #0a0a0a;
+      min-height: 200px;
+      max-height: 60vh;
+      position: relative;
+    }
+
+    .tree-canvas {
+      transform-origin: top center;
+      transition: transform 0.25s ease;
+      padding: 2rem 1rem;
+      display: inline-block;
+      min-width: 100%;
+    }
+
+    /* ── Fullscreen Overlay ── */
+    .tree-panel-fullscreen {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      z-index: 9999;
+      border-radius: 0 !important;
+      margin: 0 !important;
+      padding: 1.5rem !important;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-card) !important;
+      border: none !important;
+    }
+    .tree-panel-fullscreen .tree-viewport {
+      max-height: none;
+      flex: 1;
+    }
+    .tree-panel-fullscreen .tree-toolbar {
+      flex-shrink: 0;
+    }
+
+    /* ── CSS Tree Styling ── */
+    .tree ul {
+      padding-top: 20px; position: relative;
+      transition: all 0.5s;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .tree li {
+      float: left; text-align: center;
+      list-style-type: none;
+      position: relative;
+      padding: 20px 5px 0 5px;
+      transition: all 0.5s;
+    }
+    
+    .tree li::before, .tree li::after {
+      content: '';
+      position: absolute; top: 0; right: 50%;
+      border-top: 1px solid var(--border-color);
+      width: 50%; height: 20px;
+    }
+    .tree li::after {
+      right: auto; left: 50%;
+      border-left: 1px solid var(--border-color);
+    }
+    
+    .tree li:only-child::after, .tree li:only-child::before {
+      display: none;
+    }
+    .tree li:only-child { padding-top: 0; }
+    
+    .tree li:first-child::before, .tree li:last-child::after {
+      border: 0 none;
+    }
+    .tree li:last-child::before {
+      border-right: 1px solid var(--border-color);
+      border-radius: 0 5px 0 0;
+    }
+    .tree li:first-child::after {
+      border-radius: 5px 0 0 0;
+    }
+    
+    .tree ul ul::before {
+      content: '';
+      position: absolute; top: 0; left: 50%;
+      border-left: 1px solid var(--border-color);
+      width: 0; height: 20px;
+    }
+    
+    .tree li a.tree-link {
+      border: 1px solid var(--border-color);
+      padding: 10px 15px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 14px;
+      display: inline-block;
+      border-radius: 5px;
+      transition: all 0.35s;
+      background-color: #111;
+    }
+    
+    .tree li a.tree-link:hover {
+      background: var(--accent-red); color: #fff; border-color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(230, 57, 70, 0.3);
+    }
+    
+    @media (max-width: 900px) {
+      .admin-container {
+        grid-template-columns: 1fr;
+      }
+      .tree ul { flex-direction: column; align-items: center; }
+      .tree li::before, .tree li::after, .tree ul ul::before { display: none; }
+      .tree li { padding: 10px; }
+    }
+
+    /* ── Tree Node Box ── */
+    .tree-node {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tree-node-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .tree-node:hover .tree-node-actions {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .node-btn {
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.15s;
+      color: #fff;
+    }
+    .node-btn:hover {
+      transform: scale(1.15);
+    }
+
+    .node-btn-add {
+      background: #2d9c47;
+    }
+    .node-btn-add:hover {
+      background: #248a3d;
+    }
+
+    .node-btn-toggle {
+      background: #3b82f6;
+    }
+    .node-btn-toggle:hover {
+      background: #2563eb;
+    }
+    .node-btn-toggle.collapsed {
+      background: #6b7280;
+    }
+
+    .node-btn-delete {
+      background: var(--accent-red);
+    }
+    .node-btn-delete:hover {
+      background: var(--accent-red-hover);
+    }
+
+    /* ── Collapse Children ── */
+    .tree li.children-hidden > ul {
+      overflow: hidden;
+      max-height: 0;
+      padding-top: 0;
+      opacity: 0;
+      transition: max-height 0.4s ease, opacity 0.3s ease, padding-top 0.3s ease;
+    }
+    .tree li:not(.children-hidden) > ul {
+      max-height: 5000px;
+      opacity: 1;
+      transition: max-height 0.6s ease, opacity 0.3s ease;
+    }
+
+    /* ── Form highlight flash ── */
+    @keyframes formFlash {
+      0% { box-shadow: 0 0 0 0 rgba(230,57,70,0.4); }
+      50% { box-shadow: 0 0 20px 4px rgba(230,57,70,0.25); }
+      100% { box-shadow: 0 0 0 0 rgba(230,57,70,0); }
+    }
+    .form-flash {
+      animation: formFlash 1s ease;
+    }
+
+    /* ── Edit Modal ── */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-box {
+      background: #1a1a1a;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(230, 57, 70, 0.08);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+    .modal-overlay.show .modal-box {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .modal-header h3 {
+      color: var(--accent-red);
+      font-size: 1.2rem;
+      margin: 0;
+    }
+    .modal-close {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-muted);
+      width: 32px; height: 32px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: var(--accent-red);
+      color: #fff;
+      border-color: var(--accent-red);
+    }
+
+    .modal-box .form-group {
+      margin-bottom: 1.1rem;
+    }
+    .modal-box .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+    .modal-box .form-group input,
+    .modal-box .form-group textarea,
+    .modal-box .form-group select {
+      padding: 0.65rem 0.75rem;
+      background-color: #111;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    .modal-box .form-group input:focus,
+    .modal-box .form-group textarea:focus,
+    .modal-box .form-group select:focus {
+      outline: none;
+      border-color: var(--accent-red);
+      box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.15);
+    }
+
+    .modal-file-info {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .modal-file-info a {
+      color: var(--accent-red);
+      text-decoration: underline;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .modal-actions .btn {
+      flex: 1;
+      text-align: center;
+    }
+    .modal-actions .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+    .modal-actions .btn-secondary:hover {
+      background: #222;
+      color: var(--text-main);
+      transform: translateY(-2px);
+    }
+
+    .node-btn-edit {
+      background: #f59e0b;
+    }
+    .node-btn-edit:hover {
+      background: #d97706;
+    }
+  </style>
+</head>
+<body>
+  
+  <nav class="navbar">
+    <div class="logo-container">
+      <span class="logo-text">İkies Elektronik | Admin</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html">Siteye Dön</a></li>
+      <li><a href="#" id="logout-btn" style="color: var(--accent-red);">Çıkış Yap</a></li>
+    </ul>
+  </nav>
+
+  <div class="admin-container animate-fade-in delay-100">
+    
+    <div class="panel-section">
+      <h2>Yeni Ürün Ekle</h2>
+      <form id="add-product-form">
+        <div class="form-group">
+          <label for="p_name">Ürün Adı</label>
+          <input type="text" id="p_name" required>
+        </div>
+        <div class="form-group">
+          <label for="p_desc">Açıklama</label>
+          <textarea id="p_desc" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="p_image">Ürün Resmi Yükle</label>
+          <input type="file" id="p_image" accept="image/*" style="background: transparent; border: none; padding: 0;">
+        </div>
+        <div class="form-group">
+          <label for="p_manual">Teknik Kılavuz Yükle (PDF/DOC) (İsteğe Bağlı)</label>
+          <input type="file" id="p_manual" accept=".pdf,.doc,.docx" style="background: transparent; border: none; padding: 0;">
+        </div>
+        <div class="form-group">
+          <label for="p_parent">Bağlı Olduğu Sistem (Parent)</label>
+          <select id="p_parent">
+            <option value="">Bağımsız (Ana Ürün)</option>
+            <!-- Options populated dynamically -->
+          </select>
+        </div>
+        <button type="submit" class="btn" style="width: 100%;">Ürünü Ekle</button>
+      </form>
+    </div>
+
+    <div class="panel-section" id="tree-panel">
+      <h2>Ürün Hiyerarşisi (Branch System)</h2>
+
+      <!-- Toolbar -->
+      <div class="tree-toolbar">
+        <div class="tree-toolbar-group">
+          <button class="tree-toolbar-btn" onclick="zoomOut()" title="Uzaklaştır">−</button>
+          <span class="zoom-label" id="zoom-label">100%</span>
+          <button class="tree-toolbar-btn" onclick="zoomIn()" title="Yakınlaştır">+</button>
+          <div class="tree-toolbar-divider"></div>
+          <button class="tree-toolbar-btn" onclick="resetZoom()" title="Sıfırla">↺</button>
+        </div>
+
+        <div class="tree-toolbar-group">
+          <button class="tree-toolbar-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Tam Ekran">⛶</button>
+        </div>
+
+        <div class="tree-toolbar-group">
+          <button class="tree-toolbar-btn" onclick="expandAllNodes()" title="Tümünü Aç">▼</button>
+          <button class="tree-toolbar-btn" onclick="collapseAllNodes()" title="Tümünü Kapat">▶</button>
+        </div>
+      </div>
+
+      <!-- Viewport -->
+      <div class="tree-viewport" id="tree-viewport">
+        <div class="tree-canvas" id="tree-canvas">
+          <div class="tree" id="tree-container">
+            <!-- Tree rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Ürünü Düzenle</h3>
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <form id="edit-product-form">
+        <input type="hidden" id="edit_id">
+        <div class="form-group">
+          <label for="edit_name">Ürün Adı</label>
+          <input type="text" id="edit_name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_desc">Açıklama</label>
+          <textarea id="edit_desc" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit_image">Ürün Resmi</label>
+          <input type="file" id="edit_image" accept="image/*" style="background:transparent;border:none;padding:0;">
+          <div class="modal-file-info" id="edit_image_info"></div>
+        </div>
+        <div class="form-group">
+          <label for="edit_manual">Teknik Kılavuz (PDF/DOC)</label>
+          <input type="file" id="edit_manual" accept=".pdf,.doc,.docx" style="background:transparent;border:none;padding:0;">
+          <div class="modal-file-info" id="edit_manual_info"></div>
+        </div>
+        <div class="form-group">
+          <label for="edit_parent">Bağlı Olduğu Sistem (Parent)</label>
+          <select id="edit_parent">
+            <option value="">Bağımsız (Ana Ürün)</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeEditModal()">İptal</button>
+          <button type="submit" class="btn" id="edit-submit-btn">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/app.js?v=4"></script>
+  <script>
+    // ── Secure routing ──
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      window.location.href = 'admin-login.html';
+    }
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('admin_token');
+      window.location.href = 'admin-login.html';
+    });
+
+    let allProducts = [];
+
+    // ── Zoom State ──
+    let zoomLevel = 1.0;
+    const ZOOM_MIN = 0.3;
+    const ZOOM_MAX = 2.0;
+    const ZOOM_STEP = 0.15;
+
+    function applyZoom() {
+      const canvas = document.getElementById('tree-canvas');
+      canvas.style.transform = `scale(${zoomLevel})`;
+      document.getElementById('zoom-label').textContent = Math.round(zoomLevel * 100) + '%';
+    }
+
+    function zoomIn() {
+      zoomLevel = Math.min(ZOOM_MAX, zoomLevel + ZOOM_STEP);
+      applyZoom();
+    }
+
+    function zoomOut() {
+      zoomLevel = Math.max(ZOOM_MIN, zoomLevel - ZOOM_STEP);
+      applyZoom();
+    }
+
+    function resetZoom() {
+      zoomLevel = 1.0;
+      applyZoom();
+    }
+
+    // Mouse wheel zoom inside viewport
+    document.addEventListener('DOMContentLoaded', () => {
+      const viewport = document.getElementById('tree-viewport');
+      if (viewport) {
+        viewport.addEventListener('wheel', (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            if (e.deltaY < 0) zoomIn();
+            else zoomOut();
+          }
+        }, { passive: false });
+      }
+    });
+
+    // ── Fullscreen Toggle ──
+    let isFullscreen = false;
+
+    function toggleFullscreen() {
+      const panel = document.getElementById('tree-panel');
+      const btn = document.getElementById('fullscreen-btn');
+      isFullscreen = !isFullscreen;
+
+      if (isFullscreen) {
+        panel.classList.add('tree-panel-fullscreen');
+        btn.classList.add('active');
+        btn.title = 'Küçült';
+        document.body.style.overflow = 'hidden';
+      } else {
+        panel.classList.remove('tree-panel-fullscreen');
+        btn.classList.remove('active');
+        btn.title = 'Tam Ekran';
+        document.body.style.overflow = '';
+      }
+    }
+
+    // Escape key to exit fullscreen
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        toggleFullscreen();
+      }
+    });
+
+    // ── Quick-Add Child ──
+    function quickAddChild(parentId) {
+      const select = document.getElementById('p_parent');
+      select.value = parentId;
+
+      // Scroll to form and flash it
+      const form = document.getElementById('add-product-form');
+      const formPanel = form.closest('.panel-section');
+
+      // If in fullscreen, exit first so the form is visible
+      if (isFullscreen) toggleFullscreen();
+
+      formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      formPanel.classList.remove('form-flash');
+      void formPanel.offsetWidth; // force reflow
+      formPanel.classList.add('form-flash');
+
+      setTimeout(() => {
+        document.getElementById('p_name').focus();
+      }, 400);
+    }
+
+    // ── Toggle Children Visibility ──
+    function toggleChildren(nodeId, btn) {
+      const li = btn.closest('li');
+      if (!li) return;
+
+      const childUl = li.querySelector(':scope > ul');
+      if (!childUl) return; // no children to toggle
+
+      li.classList.toggle('children-hidden');
+      const isHidden = li.classList.contains('children-hidden');
+      btn.classList.toggle('collapsed', isHidden);
+      btn.title = isHidden ? 'Alt öğeleri göster' : 'Alt öğeleri gizle';
+      btn.textContent = isHidden ? '▶' : '▼';
+    }
+
+    // ── Expand / Collapse All ──
+    function expandAllNodes() {
+      document.querySelectorAll('#tree-container li.children-hidden').forEach(li => {
+        li.classList.remove('children-hidden');
+        const btn = li.querySelector('.node-btn-toggle');
+        if (btn) {
+          btn.classList.remove('collapsed');
+          btn.title = 'Alt öğeleri gizle';
+          btn.textContent = '▼';
+        }
+      });
+    }
+
+    function collapseAllNodes() {
+      document.querySelectorAll('#tree-container li').forEach(li => {
+        const childUl = li.querySelector(':scope > ul');
+        if (childUl) {
+          li.classList.add('children-hidden');
+          const btn = li.querySelector('.node-btn-toggle');
+          if (btn) {
+            btn.classList.add('collapsed');
+            btn.title = 'Alt öğeleri göster';
+            btn.textContent = '▶';
+          }
+        }
+      });
+    }
+
+    // ── Product CRUD ──
+    async function fetchProducts() {
+      try {
+        allProducts = await window.ProductService.getAll();
+        updateParentDropdown();
+        renderTree();
+      } catch (e) {
+        console.error("Product load failed:", e);
+      }
+    }
+
+    function updateParentDropdown() {
+      const select = document.getElementById('p_parent');
+      select.innerHTML = '<option value="">Bağımsız (Ana Ürün)</option>';
+      allProducts.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        select.appendChild(opt);
+      });
+    }
+
+    function hasChildren(productId) {
+      return allProducts.some(p => p.parent_id === productId);
+    }
+
+    function buildTreeHTML(parentId) {
+      const children = allProducts.filter(p => {
+        if (parentId === null) {
+          return p.parent_id === null || p.parent_id === undefined || p.parent_id === "" || !allProducts.some(parent => parent.id === p.parent_id);
+        }
+        return p.parent_id === parentId;
+      });
+
+      if (children.length === 0) return '';
+      
+      let html = '<ul>';
+      children.forEach(child => {
+        const childHasChildren = hasChildren(child.id);
+        html += `<li data-node-id="${child.id}">
+          <div class="tree-node">
+            <a class="tree-link" href="item.html?id=${child.id}" target="_blank">${child.name}</a>
+            <div class="tree-node-actions">
+              <button class="node-btn node-btn-edit" onclick="openEditModal(${child.id}, event)" title="Düzenle">✎</button>
+              <button class="node-btn node-btn-add" onclick="quickAddChild(${child.id})" title="Alt öğe ekle">+</button>
+              ${childHasChildren ? `<button class="node-btn node-btn-toggle" onclick="toggleChildren(${child.id}, this)" title="Alt öğeleri gizle">▼</button>` : ''}
+              <button class="node-btn node-btn-delete" onclick="deleteProduct(${child.id}, event)" title="Ürünü Sil">×</button>
+            </div>
+          </div>`;
+        html += buildTreeHTML(child.id);
+        html += `</li>`;
+      });
+      html += '</ul>';
+      return html;
+    }
+
+    async function deleteProduct(id, e) {
+      if (e) e.preventDefault();
+      if (e) e.stopPropagation();
+      if (!confirm('Bu öğeyi silmek istediğinize emin misiniz?')) return;
+      try {
+        await window.ProductService.delete(id, token);
+        alert('Ürün başarıyla silindi.');
+        fetchProducts();
+      } catch (err) {
+        alert('Silme işlemi başarısız.');
+      }
+    }
+
+    function renderTree() {
+      const container = document.getElementById('tree-container');
+      const html = buildTreeHTML(null);
+      container.innerHTML = html || '<p style="color:var(--text-muted);">Henüz ürün eklenmedi.</p>';
+    }
+
+    // ── Add Product Form ──
+    document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Ekleniyor...';
+
+      const fileInput = document.getElementById('p_image');
+      const manualInput = document.getElementById('p_manual');
+      let finalImageUrl = "";
+      let finalManualUrl = null;
+
+      try {
+        if (fileInput.files.length > 0) {
+          finalImageUrl = await window.ProductService.uploadFile(fileInput.files[0]);
+        }
+
+        if (manualInput.files.length > 0) {
+          finalManualUrl = await window.ProductService.uploadFile(manualInput.files[0]);
+        }
+        
+        const payload = {
+          name: document.getElementById('p_name').value.trim(),
+          description: document.getElementById('p_desc').value.trim(),
+          image_url: finalImageUrl || 'images/placeholder.svg',
+          manual_url: finalManualUrl,
+          parent_id: document.getElementById('p_parent').value ? parseInt(document.getElementById('p_parent').value, 10) : null
+        };
+
+        await window.ProductService.create(payload, token);
+        alert("Ürün başarıyla eklendi!");
+        document.getElementById('add-product-form').reset();
+        fetchProducts();
+      } catch (err) {
+        console.error("Error adding product:", err);
+        alert("Ürün eklenirken hata oluştu.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // ── Edit Modal ──
+    function openEditModal(productId, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+
+      const product = allProducts.find(p => p.id === productId);
+      if (!product) return;
+
+      // Fill fields
+      document.getElementById('edit_id').value = product.id;
+      document.getElementById('edit_name').value = product.name || '';
+      document.getElementById('edit_desc').value = product.description || '';
+
+      // Parent dropdown (exclude self and own descendants)
+      const editParentSelect = document.getElementById('edit_parent');
+      editParentSelect.innerHTML = '<option value="">Bağımsız (Ana Ürün)</option>';
+      const descendantIds = getDescendantIds(product.id);
+      allProducts.forEach(p => {
+        if (p.id === product.id) return;
+        if (descendantIds.has(p.id)) return;
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        if (p.id === product.parent_id) opt.selected = true;
+        editParentSelect.appendChild(opt);
+      });
+
+      // File info
+      const imgInfo = document.getElementById('edit_image_info');
+      if (product.image_url && product.image_url !== 'images/placeholder.svg') {
+        const fname = product.image_url.split('/').pop();
+        imgInfo.innerHTML = `Mevcut: <a href="${product.image_url}" target="_blank">${fname}</a>`;
+      } else {
+        imgInfo.innerHTML = '<span>Henüz resim yok</span>';
+      }
+
+      const manualInfo = document.getElementById('edit_manual_info');
+      if (product.manual_url) {
+        const fname = product.manual_url.split('/').pop();
+        manualInfo.innerHTML = `Mevcut: <a href="${product.manual_url}" target="_blank">${fname}</a>`;
+      } else {
+        manualInfo.innerHTML = '<span>Henüz kılavuz yok</span>';
+      }
+
+      // Clear file inputs
+      document.getElementById('edit_image').value = '';
+      document.getElementById('edit_manual').value = '';
+
+      // Show modal
+      const overlay = document.getElementById('edit-modal');
+      overlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+
+      setTimeout(() => document.getElementById('edit_name').focus(), 200);
+    }
+
+    function closeEditModal() {
+      const overlay = document.getElementById('edit-modal');
+      overlay.classList.remove('show');
+      if (!isFullscreen) document.body.style.overflow = '';
+    }
+
+    // Close on backdrop click
+    document.getElementById('edit-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeEditModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('edit-modal').classList.contains('show')) {
+        closeEditModal();
+      }
+    });
+
+    // Get all descendant IDs to prevent circular parent assignment
+    function getDescendantIds(parentId) {
+      const ids = new Set();
+      function walk(pid) {
+        allProducts.filter(p => p.parent_id === pid).forEach(child => {
+          ids.add(child.id);
+          walk(child.id);
+        });
+      }
+      walk(parentId);
+      return ids;
+    }
+
+    // Edit form submit
+    document.getElementById('edit-product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('edit-submit-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Kaydediliyor...';
+
+      const productId = parseInt(document.getElementById('edit_id').value, 10);
+      const product = allProducts.find(p => p.id === productId);
+
+      try {
+        // Handle image upload
+        const imageInput = document.getElementById('edit_image');
+        let imageUrl = product ? product.image_url : 'images/placeholder.svg';
+        if (imageInput.files.length > 0) {
+          imageUrl = await window.ProductService.uploadFile(imageInput.files[0]);
+        }
+
+        // Handle manual upload
+        const manualInput = document.getElementById('edit_manual');
+        let manualUrl = product ? product.manual_url : null;
+        if (manualInput.files.length > 0) {
+          manualUrl = await window.ProductService.uploadFile(manualInput.files[0]);
+        }
+
+        const parentVal = document.getElementById('edit_parent').value;
+        const payload = {
+          name: document.getElementById('edit_name').value.trim(),
+          description: document.getElementById('edit_desc').value.trim(),
+          image_url: imageUrl || 'images/placeholder.svg',
+          manual_url: manualUrl,
+          parent_id: parentVal ? parseInt(parentVal, 10) : null
+        };
+
+        await window.ProductService.update(productId, payload, token);
+        closeEditModal();
+        alert('Ürün başarıyla güncellendi!');
+        fetchProducts();
+      } catch (err) {
+        console.error('Error updating product:', err);
+        alert('Güncelleme sırasında hata oluştu.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // Init
+    fetchProducts();
+  </script>
+</body>
+</html>
