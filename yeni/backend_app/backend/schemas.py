@@ -1,6 +1,20 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+class ProductImageBase(BaseModel):
+    image_url: str
+    sort_order: int = 0
+
+class ProductImageCreate(ProductImageBase):
+    pass
+
+class ProductImage(ProductImageBase):
+    id: int
+    product_id: int
+
+    class Config:
+        from_attributes = True
+
 class ProductBase(BaseModel):
     name: str
     description: str
@@ -13,6 +27,23 @@ class ProductCreate(ProductBase):
 
 class Product(ProductBase):
     id: int
+    images: List[ProductImage] = []
+
+    class Config:
+        from_attributes = True
+
+class ReferenceBase(BaseModel):
+    company_name: str
+    logo_url: Optional[str] = None
+    description: Optional[str] = None
+    product_ids: Optional[str] = "[]"
+    images: Optional[str] = "[]"
+
+class ReferenceCreate(ReferenceBase):
+    pass
+
+class Reference(ReferenceBase):
+    id: int
 
     class Config:
         from_attributes = True
@@ -24,3 +55,8 @@ class Token(BaseModel):
 class LoginData(BaseModel):
     username: str
     password: str
+
+class ChangePasswordData(BaseModel):
+    username: str
+    current_password: str
+    new_password: str

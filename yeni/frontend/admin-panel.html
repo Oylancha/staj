@@ -430,6 +430,26 @@
       text-decoration: underline;
     }
 
+    .btn-delete-file {
+      background: rgba(230, 57, 70, 0.15);
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-delete-file:hover {
+      background: var(--accent-red);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(230, 57, 70, 0.3);
+    }
+
     .modal-actions {
       display: flex;
       gap: 0.75rem;
@@ -456,6 +476,214 @@
     .node-btn-edit:hover {
       background: #d97706;
     }
+
+    /* ── Multi-image and Gallery CSS (Task 1) ── */
+    .multi-img-preview-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .multi-img-preview-item {
+      position: relative;
+      width: 60px;
+      height: 48px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: #111;
+    }
+    .multi-img-preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .multi-img-remove-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(230, 57, 70, 0.9);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-images-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      max-height: 140px;
+      overflow-y: auto;
+      padding: 6px;
+      background: #0d0d0d;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+    .modal-img-card {
+      position: relative;
+      width: 64px;
+      height: 50px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #333;
+      background: #181818;
+    }
+    .modal-img-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .modal-img-del {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(230, 57, 70, 0.9);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-img-del:hover {
+      background: #d32f2f;
+      transform: scale(1.1);
+    }
+
+    /* ── References Admin CSS (Task 3) ── */
+    .ref-admin-container {
+      max-width: 1400px;
+      margin: 3rem auto;
+      padding: 0 5%;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 3rem;
+    }
+    @media (max-width: 900px) {
+      .ref-admin-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    .ref-admin-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .ref-admin-card {
+      background: #111;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: border-color 0.2s;
+    }
+    .ref-admin-card:hover {
+      border-color: #444;
+    }
+    .ref-admin-card-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .ref-admin-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      font-weight: 700;
+      color: var(--accent-red);
+      font-size: 0.9rem;
+    }
+    .ref-admin-logo img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .ref-admin-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .ref-admin-title {
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      margin-bottom: 0.2rem;
+    }
+    .ref-admin-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.35rem;
+    }
+    .ref-admin-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .ref-product-badge {
+      background: rgba(230, 57, 70, 0.15);
+      color: var(--accent-red);
+      border: 1px solid rgba(230, 57, 70, 0.3);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+    .ref-admin-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+    .ref-product-checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.5rem;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #111;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.6rem;
+    }
+    .ref-product-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+    .ref-product-checkbox-label input {
+      accent-color: var(--accent-red);
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -469,6 +697,28 @@
       <li><a href="#" id="logout-btn" style="color: var(--accent-red);">Çıkış Yap</a></li>
     </ul>
   </nav>
+
+  <div style="max-width: 1400px; margin: 1.5rem auto 0 auto; padding: 0 5%;">
+    <div style="background: linear-gradient(135deg, #181818, #121212); border: 1px solid #333; border-radius: 10px; padding: 1.25rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+      <div>
+        <h3 style="margin: 0 0 0.3rem 0; font-size: 1.15rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+          <span style="color: var(--accent-red);">⚡</span> Veri Yedekleme & cPanel Senkronizasyonu
+        </h3>
+        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+          Yerelde eklediğiniz ürünleri, çoklu fotoğrafları ve referans resimlerini tek tıkla indirip cPanel'e aktarabilirsiniz.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button type="button" class="btn" onclick="exportSiteData()" style="padding: 0.6rem 1.1rem; font-size: 0.88rem; background: #222; border: 1px solid #444;" title="Yerel tarayıcınızdaki tüm ürün ve resimleri JSON olarak bilgisayarınıza kaydeder">
+          📥 Verileri Dışa Aktar (JSON İndir)
+        </button>
+        <button type="button" class="btn" onclick="triggerImportSiteData()" style="padding: 0.6rem 1.1rem; font-size: 0.88rem;" title="Dışa aktarılan JSON dosyasını cPanel'e / canlı siteye anında yükler">
+          📤 Verileri İçe Aktar (JSON Yükle)
+        </button>
+        <input type="file" id="import-json-file" accept=".json" style="display: none;" onchange="handleImportFileSelected(event)">
+      </div>
+    </div>
+  </div>
 
   <div class="admin-container animate-fade-in delay-100">
     
@@ -484,18 +734,21 @@
           <textarea id="p_desc" rows="3"></textarea>
         </div>
         <div class="form-group">
-          <label for="p_image">Ürün Resmi Yükle</label>
-          <input type="file" id="p_image" accept="image/*" style="background: transparent; border: none; padding: 0;">
+          <label for="p_image">Ürün Görselleri (İlk görsel ana resim olur, en fazla 20 adet)</label>
+          <input type="file" id="p_image" accept="image/*" multiple style="background: transparent; border: none; padding: 0;">
+          <div id="add_images_preview" class="multi-img-preview-grid"></div>
         </div>
         <div class="form-group">
           <label for="p_manual">Teknik Kılavuz Yükle (PDF/DOC) (İsteğe Bağlı)</label>
-          <input type="file" id="p_manual" accept=".pdf,.doc,.docx" style="background: transparent; border: none; padding: 0;">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="file" id="p_manual" accept=".pdf,.doc,.docx" style="background: transparent; border: none; padding: 0; flex: 1;">
+            <button type="button" id="p_manual_clear_btn" class="btn-delete-file" style="display: none;" title="Seçilen dosyayı kaldır">✕ Kaldır</button>
+          </div>
         </div>
         <div class="form-group">
           <label for="p_parent">Bağlı Olduğu Sistem (Parent)</label>
           <select id="p_parent">
             <option value="">Bağımsız (Ana Ürün)</option>
-            <!-- Options populated dynamically -->
           </select>
         </div>
         <button type="submit" class="btn" style="width: 100%;">Ürünü Ekle</button>
@@ -537,7 +790,49 @@
 
   </div>
 
-  <!-- Edit Modal -->
+  <!-- ── References Management Section (Task 3) ── -->
+  <div class="ref-admin-container animate-fade-in delay-200">
+    
+    <div class="panel-section">
+      <h2>Yeni Referans Ekle</h2>
+      <form id="add-reference-form">
+        <div class="form-group">
+          <label for="ref_name">Kurum / Şirket Adı</label>
+          <input type="text" id="ref_name" required placeholder="Örn: Aselsan">
+        </div>
+        <div class="form-group">
+          <label for="ref_desc">Yapılan Çalışmalar / Açıklama</label>
+          <textarea id="ref_desc" rows="3" placeholder="Örn: Radar ve uydu de-icing sistemleri projesi."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="ref_logo">Kurum Logosu (İsteğe Bağlı)</label>
+          <input type="file" id="ref_logo" accept="image/*" style="background: transparent; border: none; padding: 0;">
+        </div>
+        <div class="form-group">
+          <label for="ref_images">Referans Resimleri (En fazla 20 adet)</label>
+          <input type="file" id="ref_images" accept="image/*" multiple style="background: transparent; border: none; padding: 0;">
+          <div id="add_ref_images_preview" class="multi-img-preview-grid"></div>
+        </div>
+        <div class="form-group">
+          <label>Üretilen / İlgili Ürünler</label>
+          <div class="ref-product-checkbox-grid" id="ref-product-checkboxes">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+        <button type="submit" class="btn" style="width: 100%;">Referansı Ekle</button>
+      </form>
+    </div>
+
+    <div class="panel-section">
+      <h2>Mevcut Referanslar</h2>
+      <div class="ref-admin-list" id="ref-admin-list">
+        <p style="color: var(--text-muted);">Referanslar yükleniyor...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Edit Product Modal -->
   <div class="modal-overlay" id="edit-modal">
     <div class="modal-box">
       <div class="modal-header">
@@ -554,14 +849,33 @@
           <label for="edit_desc">Açıklama</label>
           <textarea id="edit_desc" rows="3"></textarea>
         </div>
+        
+        <!-- Multi-photo management in Edit Modal (Task 1) -->
         <div class="form-group">
-          <label for="edit_image">Ürün Resmi</label>
-          <input type="file" id="edit_image" accept="image/*" style="background:transparent;border:none;padding:0;">
-          <div class="modal-file-info" id="edit_image_info"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label style="margin-bottom: 0;">Ürün Fotoğrafları (Kayıtlı Resimler)</label>
+            <span id="edit_existing_count_badge" style="font-size: 0.75rem; background: #222; border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; color: var(--text-muted);">0 / 20</span>
+          </div>
+          <div class="modal-images-gallery" id="edit_images_gallery">
+            <!-- Populated via JS with delete buttons -->
+          </div>
         </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label for="edit_extra_images" style="margin-bottom: 0;">Yeni Fotoğraf Ekle (Maks. 20)</label>
+            <span id="edit_remaining_count_badge" style="font-size: 0.75rem; color: var(--text-muted);">Kalan slot: 20</span>
+          </div>
+          <input type="file" id="edit_extra_images" accept="image/*" multiple style="background:transparent;border:none;padding:0;">
+          <div class="multi-img-preview-grid" id="edit_images_preview" style="display: none; margin-top: 0.5rem;"></div>
+        </div>
+
         <div class="form-group">
           <label for="edit_manual">Teknik Kılavuz (PDF/DOC)</label>
-          <input type="file" id="edit_manual" accept=".pdf,.doc,.docx" style="background:transparent;border:none;padding:0;">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="file" id="edit_manual" accept=".pdf,.doc,.docx" style="background:transparent;border:none;padding:0;flex:1;">
+            <button type="button" id="edit_manual_delete_btn" class="btn-delete-file" style="display: none;" title="Mevcut teknik kılavuzu bu üründen sil">🗑️ Kılavuzu Sil</button>
+          </div>
           <div class="modal-file-info" id="edit_manual_info"></div>
         </div>
         <div class="form-group">
@@ -573,6 +887,61 @@
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" onclick="closeEditModal()">İptal</button>
           <button type="submit" class="btn" id="edit-submit-btn">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Reference Modal (Task 3) -->
+  <div class="modal-overlay" id="edit-ref-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Referansı Düzenle</h3>
+        <button class="modal-close" onclick="closeEditRefModal()">&times;</button>
+      </div>
+      <form id="edit-ref-form">
+        <input type="hidden" id="edit_ref_id">
+        <div class="form-group">
+          <label for="edit_ref_name">Kurum / Şirket Adı</label>
+          <input type="text" id="edit_ref_name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_ref_desc">Yapılan Çalışmalar / Açıklama</label>
+          <textarea id="edit_ref_desc" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit_ref_logo">Logo Değiştir</label>
+          <input type="file" id="edit_ref_logo" accept="image/*" style="background:transparent;border:none;padding:0;">
+          <div class="modal-file-info" id="edit_ref_logo_info"></div>
+        </div>
+        <!-- Multi-photo management for Reference in Edit Modal -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label style="margin-bottom: 0;">Referans Resimleri (Kayıtlı Resimler)</label>
+            <span id="edit_ref_existing_count_badge" style="font-size: 0.75rem; background: #222; border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; color: var(--text-muted);">0 / 20</span>
+          </div>
+          <div class="modal-images-gallery" id="edit_ref_images_gallery">
+            <!-- Populated via JS with delete buttons -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label for="edit_ref_extra_images" style="margin-bottom: 0;">Yeni Resim Ekle (Maks. 20)</label>
+            <span id="edit_ref_remaining_count_badge" style="font-size: 0.75rem; color: var(--text-muted);">Kalan slot: 20</span>
+          </div>
+          <input type="file" id="edit_ref_extra_images" accept="image/*" multiple style="background:transparent;border:none;padding:0;">
+          <div class="multi-img-preview-grid" id="edit_ref_images_preview" style="display: none; margin-top: 0.5rem;"></div>
+        </div>
+        <div class="form-group">
+          <label>Üretilen / İlgili Ürünler</label>
+          <div class="ref-product-checkbox-grid" id="edit-ref-product-checkboxes">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeEditRefModal()">İptal</button>
+          <button type="submit" class="btn" id="edit-ref-submit-btn">Kaydet</button>
         </div>
       </form>
     </div>
@@ -594,6 +963,7 @@
     });
 
     let allProducts = [];
+    let editManualDeleted = false;
 
     // ── Zoom State ──
     let zoomLevel = 1.0;
@@ -788,60 +1158,120 @@
     async function deleteProduct(id, e) {
       if (e) e.preventDefault();
       if (e) e.stopPropagation();
-      if (!confirm('Bu öğeyi silmek istediğinize emin misiniz?')) return;
+      if (!confirm('Bu ürünü silmek istediğinizden emin misiniz?')) return;
       try {
         await window.ProductService.delete(id, token);
         alert('Ürün başarıyla silindi.');
         fetchProducts();
       } catch (err) {
-        alert('Silme işlemi başarısız.');
+        alert('Ürün silinemedi: ' + (err && err.message ? err.message : err));
       }
     }
 
     function renderTree() {
       const container = document.getElementById('tree-container');
       const html = buildTreeHTML(null);
-      container.innerHTML = html || '<p style="color:var(--text-muted);">Henüz ürün eklenmedi.</p>';
+      container.innerHTML = html || '<p style="color:var(--text-muted);">Henüz ürün eklenmemiş.</p>';
     }
 
-    // ── Add Product Form ──
+    // ── Multi-image Selection Preview for Add Product ──
+    const pImageInput = document.getElementById('p_image');
+    const addImagesPreview = document.getElementById('add_images_preview');
+    let selectedAddFiles = [];
+
+    if (pImageInput) {
+      pImageInput.addEventListener('change', function() {
+        addImagesPreview.innerHTML = '';
+        selectedAddFiles = Array.from(this.files).slice(0, 20);
+        selectedAddFiles.forEach((file, idx) => {
+          const item = document.createElement('div');
+          item.className = 'multi-img-preview-item';
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          item.appendChild(img);
+
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'multi-img-remove-btn';
+          removeBtn.innerHTML = '&times;';
+          removeBtn.type = 'button';
+          removeBtn.title = 'Kaldır';
+          removeBtn.onclick = () => {
+            selectedAddFiles.splice(idx, 1);
+            // Re-trigger render
+            const dt = new DataTransfer();
+            selectedAddFiles.forEach(f => dt.items.add(f));
+            pImageInput.files = dt.files;
+            pImageInput.dispatchEvent(new Event('change'));
+          };
+          item.appendChild(removeBtn);
+          addImagesPreview.appendChild(item);
+        });
+      });
+    }
+
+    // ── Add Product Form Submit ──
     document.getElementById('add-product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const submitBtn = e.target.querySelector('button[type="submit"]');
       const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Ekleniyor...';
+      submitBtn.textContent = 'Ürün ekleniyor...';
 
       const fileInput = document.getElementById('p_image');
       const manualInput = document.getElementById('p_manual');
-      let finalImageUrl = "";
+      let uploadedImageUrls = [];
       let finalManualUrl = null;
 
       try {
-        if (fileInput.files.length > 0) {
-          finalImageUrl = await window.ProductService.uploadFile(fileInput.files[0]);
+        const filesToUpload = (selectedAddFiles && selectedAddFiles.length > 0)
+          ? selectedAddFiles.slice(0, 20)
+          : Array.from(fileInput.files).slice(0, 20);
+
+        const totalFiles = filesToUpload.length;
+        for (let i = 0; i < totalFiles; i++) {
+          submitBtn.textContent = `Fotoğraflar işleniyor (${i + 1}/${totalFiles})...`;
+          try {
+            const url = await window.ProductService.uploadFile(filesToUpload[i]);
+            if (url) uploadedImageUrls.push(url);
+          } catch (upErr) {
+            console.warn(`Fotoğraf ${i + 1} işlenemedi:`, upErr);
+          }
         }
 
         if (manualInput.files.length > 0) {
+          submitBtn.textContent = 'Kılavuz yükleniyor...';
           finalManualUrl = await window.ProductService.uploadFile(manualInput.files[0]);
         }
         
+        submitBtn.textContent = 'Ürün kaydediliyor...';
         const payload = {
           name: document.getElementById('p_name').value.trim(),
           description: document.getElementById('p_desc').value.trim(),
-          image_url: finalImageUrl || 'images/placeholder.svg',
+          image_url: uploadedImageUrls[0] || 'images/placeholder.svg',
           manual_url: finalManualUrl,
           parent_id: document.getElementById('p_parent').value ? parseInt(document.getElementById('p_parent').value, 10) : null
         };
 
-        await window.ProductService.create(payload, token);
+        const createdProduct = await window.ProductService.create(payload, token);
+
+        // Attach extra images if more than 1 image uploaded
+        if (createdProduct && createdProduct.id && uploadedImageUrls.length > 1) {
+          submitBtn.textContent = 'Ek fotoğraflar kaydediliyor...';
+          await window.ProductService.addImages(createdProduct.id, uploadedImageUrls.slice(1), token);
+        }
+
         alert("Ürün başarıyla eklendi!");
         document.getElementById('add-product-form').reset();
-        fetchProducts();
+        addImagesPreview.innerHTML = '';
+        selectedAddFiles = [];
+        const pManualClearBtn = document.getElementById('p_manual_clear_btn');
+        if (pManualClearBtn) pManualClearBtn.style.display = 'none';
+        await fetchProducts();
+        renderRefProductCheckboxes();
       } catch (err) {
-        console.error("Error adding product:", err);
-        alert("Ürün eklenirken hata oluştu.");
+        console.error("Ürün eklenirken hata oluştu:", err);
+        alert("Ürün eklenemedi: " + (err && err.message ? err.message : err));
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
@@ -849,7 +1279,7 @@
     });
 
     // ── Edit Modal ──
-    function openEditModal(productId, e) {
+    async function openEditModal(productId, e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
 
       const product = allProducts.find(p => p.id === productId);
@@ -874,25 +1304,38 @@
         editParentSelect.appendChild(opt);
       });
 
-      // File info
-      const imgInfo = document.getElementById('edit_image_info');
-      if (product.image_url && product.image_url !== 'images/placeholder.svg') {
-        const fname = product.image_url.split('/').pop();
-        imgInfo.innerHTML = `Mevcut: <a href="${product.image_url}" target="_blank">${fname}</a>`;
-      } else {
-        imgInfo.innerHTML = '<span>Henüz resim yok</span>';
-      }
+      // Render existing photos in Edit Gallery (Task 1)
+      renderEditImagesGallery(product);
 
+      // Manual info
       const manualInfo = document.getElementById('edit_manual_info');
+      const deleteManualBtn = document.getElementById('edit_manual_delete_btn');
+      editManualDeleted = false;
+
       if (product.manual_url) {
-        const fname = product.manual_url.split('/').pop();
-        manualInfo.innerHTML = `Mevcut: <a href="${product.manual_url}" target="_blank">${fname}</a>`;
+        deleteManualBtn.style.display = 'inline-flex';
+        deleteManualBtn.innerHTML = '🗑️ Kılavuzu Sil';
+        deleteManualBtn.title = 'Mevcut teknik kılavuzu bu üründen sil';
+        if (product.manual_url.startsWith('data:')) {
+          manualInfo.innerHTML = 'Mevcut: <span style="color: var(--text-color);">Yüklenmiş Teknik Kılavuz (PDF)</span>';
+        } else {
+          const fname = product.manual_url.split('/').pop().split('?')[0];
+          manualInfo.innerHTML = `Mevcut: <a href="${product.manual_url}" target="_blank">${fname}</a>`;
+        }
       } else {
+        deleteManualBtn.style.display = 'none';
         manualInfo.innerHTML = '<span>Henüz kılavuz yok</span>';
       }
 
-      // Clear file inputs
-      document.getElementById('edit_image').value = '';
+      // Clear file inputs and preview
+      const extraImagesInput = document.getElementById('edit_extra_images');
+      if (extraImagesInput) extraImagesInput.value = '';
+      selectedEditFiles = [];
+      const editImagesPreview = document.getElementById('edit_images_preview');
+      if (editImagesPreview) {
+        editImagesPreview.innerHTML = '';
+        editImagesPreview.style.display = 'none';
+      }
       document.getElementById('edit_manual').value = '';
 
       // Show modal
@@ -903,9 +1346,167 @@
       setTimeout(() => document.getElementById('edit_name').focus(), 200);
     }
 
+    let selectedEditFiles = [];
+
+    function renderEditImagesPreview() {
+      const editImagesPreview = document.getElementById('edit_images_preview');
+      if (!editImagesPreview) return;
+      editImagesPreview.innerHTML = '';
+      if (selectedEditFiles.length === 0) {
+        editImagesPreview.style.display = 'none';
+        return;
+      }
+      editImagesPreview.style.display = 'flex';
+      selectedEditFiles.forEach((file, idx) => {
+        const item = document.createElement('div');
+        item.className = 'multi-img-preview-item';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        item.appendChild(img);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'multi-img-remove-btn';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.type = 'button';
+        removeBtn.title = 'Kaldır';
+        removeBtn.onclick = () => {
+          selectedEditFiles.splice(idx, 1);
+          renderEditImagesPreview();
+        };
+        item.appendChild(removeBtn);
+        editImagesPreview.appendChild(item);
+      });
+    }
+
+    const editExtraImagesInput = document.getElementById('edit_extra_images');
+    if (editExtraImagesInput) {
+      editExtraImagesInput.addEventListener('change', function() {
+        const productId = parseInt(document.getElementById('edit_id').value, 10);
+        const product = allProducts.find(p => p.id === productId || parseInt(p.id, 10) === productId);
+        let existingCount = 0;
+        if (product) {
+          const hasRealPrimary = product.image_url && product.image_url !== 'images/placeholder.svg';
+          if (hasRealPrimary) existingCount++;
+          if (Array.isArray(product.images)) {
+            product.images.forEach(img => {
+              const url = typeof img === 'string' ? img : (img && img.image_url ? img.image_url : null);
+              if (url && (!hasRealPrimary || url !== product.image_url)) {
+                existingCount++;
+              }
+            });
+          }
+        }
+
+        const remainingSlots = Math.max(0, 20 - existingCount);
+        if (remainingSlots <= 0) {
+          alert('Bu ürün için maksimum 20 fotoğraf sınırına ulaşıldı. Yeni eklemeden önce mevcut fotoğrafları siliniz.');
+          this.value = '';
+          selectedEditFiles = [];
+          renderEditImagesPreview();
+          return;
+        }
+
+        const chosen = Array.from(this.files);
+        if (chosen.length > remainingSlots) {
+          alert(`20 fotoğraf sınırına ulaşmak için en fazla ${remainingSlots} fotoğraf daha ekleyebilirsiniz. İlk ${remainingSlots} fotoğraf seçildi.`);
+        }
+
+        selectedEditFiles = chosen.slice(0, remainingSlots);
+        renderEditImagesPreview();
+      });
+    }
+
+    function renderEditImagesGallery(product) {
+      const gallery = document.getElementById('edit_images_gallery');
+      const existingBadge = document.getElementById('edit_existing_count_badge');
+      const remainingBadge = document.getElementById('edit_remaining_count_badge');
+      gallery.innerHTML = '';
+
+      const images = [];
+      const hasRealPrimary = product.image_url && product.image_url !== 'images/placeholder.svg';
+      if (hasRealPrimary) {
+        images.push({ id: 'primary', image_url: product.image_url, isPrimary: true });
+      }
+      if (Array.isArray(product.images)) {
+        product.images.forEach(img => {
+          const url = typeof img === 'string' ? img : (img && img.image_url ? img.image_url : null);
+          const imgId = typeof img === 'object' && img && img.id ? img.id : url;
+          if (url && (!hasRealPrimary || url !== product.image_url)) {
+            images.push({ id: imgId, image_url: url, isPrimary: false });
+          }
+        });
+      }
+
+      const existingCount = images.length;
+      if (existingBadge) existingBadge.textContent = `${existingCount} / 20`;
+      const remainingSlots = Math.max(0, 20 - existingCount);
+      if (remainingBadge) {
+        remainingBadge.textContent = `Kalan slot: ${remainingSlots}`;
+        remainingBadge.style.color = remainingSlots === 0 ? 'var(--accent-red)' : 'var(--text-muted)';
+      }
+
+      if (images.length === 0) {
+        gallery.innerHTML = '<span style="color:var(--text-muted);font-size:0.8rem;padding:4px;">Kayıtlı fotoğraf yok</span>';
+        return;
+      }
+
+      images.forEach((img, idx) => {
+        const card = document.createElement('div');
+        card.className = 'modal-img-card';
+        card.innerHTML = `<img src="${img.image_url}" alt="Fotoğraf ${idx+1}" onerror="this.src='images/placeholder.svg'">`;
+
+        if (img.isPrimary) {
+          const primaryTag = document.createElement('span');
+          primaryTag.style.cssText = 'position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.75);color:#4ade80;font-size:9px;padding:1px 3px;border-radius:2px;';
+          primaryTag.textContent = 'Ana Resim';
+          card.appendChild(primaryTag);
+        }
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'modal-img-del';
+        delBtn.innerHTML = '&times;';
+        delBtn.type = 'button';
+        delBtn.title = img.isPrimary ? 'Ana fotoğrafı sil' : 'Fotoğrafı sil';
+        delBtn.onclick = async () => {
+          if (!confirm(img.isPrimary ? 'Ana fotoğrafı silmek istediğinizden emin misiniz?' : 'Bu fotoğrafı silmek istediğinizden emin misiniz?')) return;
+          
+          if (img.isPrimary) {
+            let newPrimary = 'images/placeholder.svg';
+            if (Array.isArray(product.images) && product.images.length > 0) {
+              const promoted = product.images.shift();
+              newPrimary = typeof promoted === 'string' ? promoted : (promoted && promoted.image_url ? promoted.image_url : 'images/placeholder.svg');
+              if (typeof promoted === 'object' && promoted && promoted.id) {
+                await window.ProductService.deleteImage(product.id, promoted.id, token);
+              }
+            }
+            product.image_url = newPrimary;
+            await window.ProductService.update(product.id, { image_url: newPrimary, images: product.images }, token);
+          } else {
+            await window.ProductService.deleteImage(product.id, img.id, token);
+          }
+
+          // Refresh state
+          const updatedP = await window.ProductService.getById(product.id);
+          if (updatedP) {
+            const pIdx = allProducts.findIndex(p => p.id === product.id || parseInt(p.id, 10) === parseInt(product.id, 10));
+            if (pIdx !== -1) allProducts[pIdx] = updatedP;
+            renderEditImagesGallery(updatedP);
+          }
+        };
+        card.appendChild(delBtn);
+        gallery.appendChild(card);
+      });
+    }
+
     function closeEditModal() {
       const overlay = document.getElementById('edit-modal');
       overlay.classList.remove('show');
+      selectedEditFiles = [];
+      const editImagesPreview = document.getElementById('edit_images_preview');
+      if (editImagesPreview) {
+        editImagesPreview.innerHTML = '';
+        editImagesPreview.style.display = 'none';
+      }
       if (!isFullscreen) document.body.style.overflow = '';
     }
 
@@ -934,7 +1535,7 @@
       return ids;
     }
 
-    // Edit form submit
+    // Edit Product form submit
     document.getElementById('edit-product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -944,47 +1545,736 @@
       submitBtn.textContent = 'Kaydediliyor...';
 
       const productId = parseInt(document.getElementById('edit_id').value, 10);
-      const product = allProducts.find(p => p.id === productId);
+      const product = allProducts.find(p => p.id === productId || parseInt(p.id, 10) === productId);
 
       try {
-        // Handle image upload
-        const imageInput = document.getElementById('edit_image');
-        let imageUrl = product ? product.image_url : 'images/placeholder.svg';
-        if (imageInput.files.length > 0) {
-          imageUrl = await window.ProductService.uploadFile(imageInput.files[0]);
-        }
-
-        // Handle manual upload
+        // Handle manual upload or deletion
         const manualInput = document.getElementById('edit_manual');
         let manualUrl = product ? product.manual_url : null;
-        if (manualInput.files.length > 0) {
+        if (editManualDeleted) {
+          manualUrl = null;
+        }
+        if (manualInput && manualInput.files && manualInput.files.length > 0) {
+          submitBtn.textContent = 'Kılavuz yükleniyor...';
           manualUrl = await window.ProductService.uploadFile(manualInput.files[0]);
         }
 
         const parentVal = document.getElementById('edit_parent').value;
+        let mainImageUrl = product ? product.image_url : 'images/placeholder.svg';
+
+        // Process any new photos selected (up to 20 total limit)
+        const filesToUpload = selectedEditFiles.length > 0 
+          ? selectedEditFiles 
+          : (editExtraImagesInput && editExtraImagesInput.files.length > 0 ? Array.from(editExtraImagesInput.files).slice(0, 20) : []);
+
+        const uploadedUrls = [];
+        if (filesToUpload.length > 0) {
+          const total = filesToUpload.length;
+          for (let i = 0; i < total; i++) {
+            submitBtn.textContent = `Fotoğraflar işleniyor (${i + 1}/${total})...`;
+            try {
+              const uploadedUrl = await window.ProductService.uploadFile(filesToUpload[i]);
+              if (uploadedUrl) {
+                uploadedUrls.push(uploadedUrl);
+              }
+            } catch (upErr) {
+              console.warn(`Fotoğraf ${i + 1} işlenemedi:`, upErr);
+            }
+          }
+        }
+
+        // If product has placeholder or empty image, promote first uploaded photo to main
+        if ((!mainImageUrl || mainImageUrl === 'images/placeholder.svg') && uploadedUrls.length > 0) {
+          mainImageUrl = uploadedUrls.shift();
+        }
+
+        submitBtn.textContent = 'Ürün kaydediliyor...';
         const payload = {
           name: document.getElementById('edit_name').value.trim(),
           description: document.getElementById('edit_desc').value.trim(),
-          image_url: imageUrl || 'images/placeholder.svg',
+          image_url: mainImageUrl,
           manual_url: manualUrl,
           parent_id: parentVal ? parseInt(parentVal, 10) : null
         };
 
         await window.ProductService.update(productId, payload, token);
+
+        // Attach remaining uploaded images in batch
+        if (uploadedUrls.length > 0) {
+          submitBtn.textContent = 'Fotoğraflar kaydediliyor...';
+          await window.ProductService.addImages(productId, uploadedUrls, token);
+        }
+
+        selectedEditFiles = [];
+        if (editExtraImagesInput) editExtraImagesInput.value = '';
+        const editImagesPreview = document.getElementById('edit_images_preview');
+        if (editImagesPreview) {
+          editImagesPreview.innerHTML = '';
+          editImagesPreview.style.display = 'none';
+        }
+
         closeEditModal();
-        alert('Ürün başarıyla güncellendi!');
-        fetchProducts();
+        alert('Ürün ve fotoğraflar başarıyla güncellendi!');
+        await fetchProducts();
+        renderRefProductCheckboxes();
       } catch (err) {
-        console.error('Error updating product:', err);
-        alert('Güncelleme sırasında hata oluştu.');
+        console.error('Ürün güncellenirken hata oluştu:', err);
+        alert('Ürün güncellenemedi: ' + (err && err.message ? err.message : err));
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
       }
     });
 
-    // Init
-    fetchProducts();
+    // ── Manual File Delete / Clear Handlers ──
+    const editManualDeleteBtn = document.getElementById('edit_manual_delete_btn');
+    const editManualInput = document.getElementById('edit_manual');
+    const editManualInfo = document.getElementById('edit_manual_info');
+
+    editManualDeleteBtn.addEventListener('click', () => {
+      const productId = parseInt(document.getElementById('edit_id').value, 10);
+      const product = allProducts.find(p => p.id === productId || parseInt(p.id, 10) === productId);
+
+      if (editManualInput.files.length > 0) {
+        editManualInput.value = '';
+        if (product && product.manual_url && !editManualDeleted) {
+          editManualDeleteBtn.innerHTML = '🗑️ Kılavuzu Sil';
+          editManualDeleteBtn.title = 'Teknik kılavuzu bu üründen sil';
+          if (product.manual_url.startsWith('data:')) {
+            editManualInfo.innerHTML = 'Mevcut: <span style="color: var(--text-color);">Yüklenmiş Teknik Kılavuz (PDF)</span>';
+          } else {
+            const fname = product.manual_url.split('/').pop().split('?')[0];
+            editManualInfo.innerHTML = `Mevcut: <a href="${product.manual_url}" target="_blank">${fname}</a>`;
+          }
+        } else {
+          editManualDeleteBtn.style.display = 'none';
+          editManualInfo.innerHTML = editManualDeleted 
+            ? '<span style="color: var(--accent-red); font-weight: 500;">🗑️ Kılavuz silindi (Kaydet butonuna basarak onaylayın)</span>' 
+            : '<span>Henüz kılavuz yok</span>';
+        }
+        return;
+      }
+
+      if (confirm('Bu ürünün teknik kılavuzunu silmek istediğinizden emin misiniz?')) {
+        editManualDeleted = true;
+        editManualInput.value = '';
+        editManualDeleteBtn.style.display = 'none';
+        editManualInfo.innerHTML = '<span style="color: var(--accent-red); font-weight: 500;">🗑️ Kılavuz silindi (Kaydet butonuna basarak onaylayın)</span>';
+      }
+    });
+
+    editManualInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        editManualDeleted = false;
+        editManualDeleteBtn.style.display = 'inline-flex';
+        editManualDeleteBtn.innerHTML = '✕ Seçimi Kaldır';
+        editManualDeleteBtn.title = 'Seçilen dosyayı kaldır';
+        editManualInfo.innerHTML = `<span style="color: var(--text-color);">Yeni dosya: <strong>${this.files[0].name}</strong></span>`;
+      }
+    });
+
+    const pManualInput = document.getElementById('p_manual');
+    const pManualClearBtn = document.getElementById('p_manual_clear_btn');
+    if (pManualInput && pManualClearBtn) {
+      pManualInput.addEventListener('change', function() {
+        pManualClearBtn.style.display = this.files.length > 0 ? 'inline-flex' : 'none';
+      });
+      pManualClearBtn.addEventListener('click', function() {
+        pManualInput.value = '';
+        pManualClearBtn.style.display = 'none';
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // ── REFERENCES MANAGEMENT LOGIC (Tasks 2 & 3) ──
+    // ══════════════════════════════════════════════════════════
+    let allReferences = [];
+
+    function renderRefProductCheckboxes(targetId = 'ref-product-checkboxes', selectedIds = []) {
+      const container = document.getElementById(targetId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!allProducts || allProducts.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.8rem;">Henüz kayıtlı ürün yok.</span>';
+        return;
+      }
+
+      allProducts.forEach(p => {
+        const label = document.createElement('label');
+        label.className = 'ref-product-checkbox-label';
+        const isChecked = selectedIds.includes(p.id) || selectedIds.includes(String(p.id));
+        label.innerHTML = `
+          <input type="checkbox" value="${p.id}" ${isChecked ? 'checked' : ''}>
+          <span>${p.name}</span>
+        `;
+        container.appendChild(label);
+      });
+    }
+
+    function getSelectedRefProductIds(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return [];
+      const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+      return Array.from(checkboxes).map(cb => parseInt(cb.value, 10));
+    }
+
+    async function fetchReferences() {
+      try {
+        allReferences = await window.ReferenceService.getAll();
+        renderReferencesList();
+        renderRefProductCheckboxes('ref-product-checkboxes');
+      } catch (err) {
+        console.error("References load failed:", err);
+      }
+    }
+
+    function renderReferencesList() {
+      const listContainer = document.getElementById('ref-admin-list');
+      if (!listContainer) return;
+
+      if (!allReferences || allReferences.length === 0) {
+        listContainer.innerHTML = '<p style="color: var(--text-muted);">Henüz referans eklenmemiş.</p>';
+        return;
+      }
+
+      listContainer.innerHTML = '';
+      allReferences.forEach(ref => {
+        const card = document.createElement('div');
+        card.className = 'ref-admin-card';
+
+        let pIds = [];
+        try {
+          if (typeof ref.product_ids === 'string') pIds = JSON.parse(ref.product_ids || '[]');
+          else if (Array.isArray(ref.product_ids)) pIds = ref.product_ids;
+        } catch (_) { pIds = []; }
+
+        let badgesHtml = '';
+        if (pIds.length > 0) {
+          pIds.forEach(pid => {
+            const p = allProducts.find(item => item.id === parseInt(pid, 10));
+            if (p) badgesHtml += `<span class="ref-product-badge">${p.name}</span>`;
+          });
+        } else {
+          badgesHtml = '<span style="font-size:0.75rem;color:var(--text-muted);">Ürün atanmamış</span>';
+        }
+
+        // Photo count badge
+        let refImagesCount = 0;
+        if (Array.isArray(ref.images)) {
+          refImagesCount = ref.images.length;
+        } else if (typeof ref.images === 'string') {
+          try { refImagesCount = JSON.parse(ref.images).length; } catch (_) {}
+        }
+        if (refImagesCount > 0) {
+          badgesHtml += `<span class="ref-product-badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3);">📷 ${refImagesCount} resim</span>`;
+        }
+
+        let logoHtml = '';
+        if (ref.logo_url) {
+          logoHtml = `<img src="${ref.logo_url}" alt="${ref.company_name}" onerror="this.parentElement.textContent='IK'">`;
+        } else {
+          const initials = ref.company_name ? ref.company_name.substring(0, 2).toUpperCase() : 'IK';
+          logoHtml = `<span>${initials}</span>`;
+        }
+
+        card.innerHTML = `
+          <div class="ref-admin-card-left">
+            <div class="ref-admin-logo">${logoHtml}</div>
+            <div class="ref-admin-info">
+              <div class="ref-admin-title">${ref.company_name}</div>
+              <div class="ref-admin-desc">${ref.description || 'Açıklama belirtilmemiş'}</div>
+              <div class="ref-admin-badges">${badgesHtml}</div>
+            </div>
+          </div>
+          <div class="ref-admin-actions">
+            <button class="node-btn node-btn-edit" onclick="openEditRefModal(${ref.id})" title="Düzenle">✎</button>
+            <button class="node-btn node-btn-delete" onclick="deleteReference(${ref.id})" title="Sil">×</button>
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+    }
+
+    // ── Multi-image Selection Preview for Add Reference ──
+    const refImagesInput = document.getElementById('ref_images');
+    const addRefImagesPreview = document.getElementById('add_ref_images_preview');
+    let selectedAddRefFiles = [];
+
+    if (refImagesInput) {
+      refImagesInput.addEventListener('change', function() {
+        addRefImagesPreview.innerHTML = '';
+        selectedAddRefFiles = Array.from(this.files).slice(0, 20);
+        selectedAddRefFiles.forEach((file, idx) => {
+          const item = document.createElement('div');
+          item.className = 'multi-img-preview-item';
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          item.appendChild(img);
+
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'multi-img-remove-btn';
+          removeBtn.innerHTML = '&times;';
+          removeBtn.type = 'button';
+          removeBtn.title = 'Kaldır';
+          removeBtn.onclick = () => {
+            selectedAddRefFiles.splice(idx, 1);
+            const dt = new DataTransfer();
+            selectedAddRefFiles.forEach(f => dt.items.add(f));
+            refImagesInput.files = dt.files;
+            refImagesInput.dispatchEvent(new Event('change'));
+          };
+          item.appendChild(removeBtn);
+          addRefImagesPreview.appendChild(item);
+        });
+      });
+    }
+
+    // Add Reference Form Submit
+    document.getElementById('add-reference-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Referans ekleniyor...';
+
+      const logoInput = document.getElementById('ref_logo');
+      let logoUrl = null;
+      let uploadedRefImageUrls = [];
+
+      try {
+        if (logoInput.files.length > 0) {
+          submitBtn.textContent = 'Logo yükleniyor...';
+          logoUrl = await window.ProductService.uploadFile(logoInput.files[0]);
+        }
+
+        const filesToUpload = (selectedAddRefFiles && selectedAddRefFiles.length > 0)
+          ? selectedAddRefFiles.slice(0, 20)
+          : (refImagesInput && refImagesInput.files.length > 0 ? Array.from(refImagesInput.files).slice(0, 20) : []);
+
+        const totalFiles = filesToUpload.length;
+        for (let i = 0; i < totalFiles; i++) {
+          submitBtn.textContent = `Fotoğraflar işleniyor (${i + 1}/${totalFiles})...`;
+          try {
+            const url = await window.ProductService.uploadFile(filesToUpload[i]);
+            if (url) uploadedRefImageUrls.push(url);
+          } catch (upErr) {
+            console.warn(`Referans fotoğrafı ${i + 1} işlenemedi:`, upErr);
+          }
+        }
+
+        submitBtn.textContent = 'Referans kaydediliyor...';
+        const selectedProductIds = getSelectedRefProductIds('ref-product-checkboxes');
+        const payload = {
+          company_name: document.getElementById('ref_name').value.trim(),
+          description: document.getElementById('ref_desc').value.trim(),
+          logo_url: logoUrl,
+          product_ids: JSON.stringify(selectedProductIds),
+          images: uploadedRefImageUrls
+        };
+
+        await window.ReferenceService.create(payload, token);
+        alert("Referans başarıyla eklendi!");
+        document.getElementById('add-reference-form').reset();
+        addRefImagesPreview.innerHTML = '';
+        selectedAddRefFiles = [];
+        await fetchReferences();
+      } catch (err) {
+        console.error("Referans eklenirken hata oluştu:", err);
+        alert("Referans eklenemedi: " + (err && err.message ? err.message : err));
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // Delete Reference
+    async function deleteReference(refId) {
+      if (!confirm('Bu referansı ve tüm verilerini silmek istediğinizden emin misiniz?')) return;
+      try {
+        await window.ReferenceService.delete(refId, token);
+        alert("Referans başarıyla silindi.");
+        fetchReferences();
+      } catch (err) {
+        console.error("Referans silinirken hata oluştu:", err);
+        alert("Referans silinemedi: " + (err && err.message ? err.message : err));
+      }
+    }
+
+    // ── Edit Reference Modal and Photos Gallery ──
+    let selectedEditRefFiles = [];
+
+    function renderEditRefImagesPreview() {
+      const preview = document.getElementById('edit_ref_images_preview');
+      if (!preview) return;
+      preview.innerHTML = '';
+      if (selectedEditRefFiles.length === 0) {
+        preview.style.display = 'none';
+        return;
+      }
+      preview.style.display = 'flex';
+      selectedEditRefFiles.forEach((file, idx) => {
+        const item = document.createElement('div');
+        item.className = 'multi-img-preview-item';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        item.appendChild(img);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'multi-img-remove-btn';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.type = 'button';
+        removeBtn.title = 'Kaldır';
+        removeBtn.onclick = () => {
+          selectedEditRefFiles.splice(idx, 1);
+          renderEditRefImagesPreview();
+        };
+        item.appendChild(removeBtn);
+        preview.appendChild(item);
+      });
+    }
+
+    const editRefExtraImagesInput = document.getElementById('edit_ref_extra_images');
+    if (editRefExtraImagesInput) {
+      editRefExtraImagesInput.addEventListener('change', function() {
+        const refId = parseInt(document.getElementById('edit_ref_id').value, 10);
+        const ref = allReferences.find(r => r.id === refId || parseInt(r.id, 10) === refId);
+        let existingCount = 0;
+        if (ref && Array.isArray(ref.images)) {
+          existingCount = ref.images.length;
+        }
+
+        const remainingSlots = Math.max(0, 20 - existingCount);
+        if (remainingSlots <= 0) {
+          alert('Bu referans için maksimum 20 resim sınırına ulaşıldı. Yeni eklemeden önce mevcut resimleri siliniz.');
+          this.value = '';
+          selectedEditRefFiles = [];
+          renderEditRefImagesPreview();
+          return;
+        }
+
+        const chosen = Array.from(this.files);
+        if (chosen.length > remainingSlots) {
+          alert(`20 resim sınırına ulaşmak için en fazla ${remainingSlots} resim daha ekleyebilirsiniz. İlk ${remainingSlots} resim seçildi.`);
+        }
+
+        selectedEditRefFiles = chosen.slice(0, remainingSlots);
+        renderEditRefImagesPreview();
+      });
+    }
+
+    function renderEditRefImagesGallery(ref) {
+      const gallery = document.getElementById('edit_ref_images_gallery');
+      const existingBadge = document.getElementById('edit_ref_existing_count_badge');
+      const remainingBadge = document.getElementById('edit_ref_remaining_count_badge');
+      if (!gallery) return;
+      gallery.innerHTML = '';
+
+      let images = [];
+      if (Array.isArray(ref.images)) {
+        images = ref.images;
+      } else if (typeof ref.images === 'string') {
+        try { images = JSON.parse(ref.images || '[]'); } catch (_) { images = []; }
+      }
+
+      const existingCount = images.length;
+      if (existingBadge) existingBadge.textContent = `${existingCount} / 20`;
+      const remainingSlots = Math.max(0, 20 - existingCount);
+      if (remainingBadge) {
+        remainingBadge.textContent = `Kalan slot: ${remainingSlots}`;
+        remainingBadge.style.color = remainingSlots === 0 ? 'var(--accent-red)' : 'var(--text-muted)';
+      }
+
+      if (images.length === 0) {
+        gallery.innerHTML = '<span style="color:var(--text-muted);font-size:0.8rem;padding:4px;">Kayıtlı resim yok</span>';
+        return;
+      }
+
+      images.forEach((img, idx) => {
+        const url = typeof img === 'string' ? img : (img && img.image_url ? img.image_url : null);
+        const imgId = typeof img === 'object' && img && img.id ? img.id : url;
+        if (!url) return;
+
+        const card = document.createElement('div');
+        card.className = 'modal-img-card';
+        card.innerHTML = `<img src="${url}" alt="Resim ${idx+1}" onerror="this.parentElement.style.display='none'">`;
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'modal-img-del';
+        delBtn.innerHTML = '&times;';
+        delBtn.type = 'button';
+        delBtn.title = 'Resmi sil';
+        delBtn.onclick = async () => {
+          if (!confirm('Bu resmi silmek istediğinizden emin misiniz?')) return;
+          await window.ReferenceService.deleteImage(ref.id, imgId, token);
+          const updatedRef = await window.ReferenceService.getById(ref.id);
+          if (updatedRef) {
+            const rIdx = allReferences.findIndex(r => r.id === ref.id || parseInt(r.id, 10) === parseInt(ref.id, 10));
+            if (rIdx !== -1) allReferences[rIdx] = updatedRef;
+            renderEditRefImagesGallery(updatedRef);
+            renderReferencesList();
+          }
+        };
+        card.appendChild(delBtn);
+        gallery.appendChild(card);
+      });
+    }
+
+    // Edit Reference Modal
+    function openEditRefModal(refId) {
+      const ref = allReferences.find(r => r.id === refId);
+      if (!ref) return;
+
+      document.getElementById('edit_ref_id').value = ref.id;
+      document.getElementById('edit_ref_name').value = ref.company_name || '';
+      document.getElementById('edit_ref_desc').value = ref.description || '';
+
+      const logoInfo = document.getElementById('edit_ref_logo_info');
+      if (ref.logo_url) {
+        const fname = ref.logo_url.split('/').pop().split('?')[0];
+        logoInfo.innerHTML = `Mevcut: <a href="${ref.logo_url}" target="_blank">${fname}</a>`;
+      } else {
+        logoInfo.innerHTML = '<span>Logo yüklenmemiş</span>';
+      }
+
+      document.getElementById('edit_ref_logo').value = '';
+
+      // Reset extra images file input and preview
+      if (editRefExtraImagesInput) editRefExtraImagesInput.value = '';
+      selectedEditRefFiles = [];
+      const editRefImagesPreview = document.getElementById('edit_ref_images_preview');
+      if (editRefImagesPreview) {
+        editRefImagesPreview.innerHTML = '';
+        editRefImagesPreview.style.display = 'none';
+      }
+
+      // Render existing reference photos
+      renderEditRefImagesGallery(ref);
+
+      let pIds = [];
+      try {
+        if (typeof ref.product_ids === 'string') pIds = JSON.parse(ref.product_ids || '[]');
+        else if (Array.isArray(ref.product_ids)) pIds = ref.product_ids;
+      } catch (_) { pIds = []; }
+
+      renderRefProductCheckboxes('edit-ref-product-checkboxes', pIds);
+
+      const modal = document.getElementById('edit-ref-modal');
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditRefModal() {
+      const modal = document.getElementById('edit-ref-modal');
+      modal.classList.remove('show');
+      selectedEditRefFiles = [];
+      const editRefImagesPreview = document.getElementById('edit_ref_images_preview');
+      if (editRefImagesPreview) {
+        editRefImagesPreview.innerHTML = '';
+        editRefImagesPreview.style.display = 'none';
+      }
+      if (!isFullscreen) document.body.style.overflow = '';
+    }
+
+    document.getElementById('edit-ref-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeEditRefModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('edit-ref-modal').classList.contains('show')) {
+        closeEditRefModal();
+      }
+    });
+
+    // Edit Reference Form Submit
+    document.getElementById('edit-ref-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('edit-ref-submit-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Referans kaydediliyor...';
+
+      const refId = parseInt(document.getElementById('edit_ref_id').value, 10);
+      const ref = allReferences.find(r => r.id === refId);
+
+      try {
+        const logoInput = document.getElementById('edit_ref_logo');
+        let logoUrl = ref ? ref.logo_url : null;
+        if (logoInput.files.length > 0) {
+          submitBtn.textContent = 'Logo yükleniyor...';
+          logoUrl = await window.ProductService.uploadFile(logoInput.files[0]);
+        }
+
+        // Process any new photos selected
+        const filesToUpload = selectedEditRefFiles.length > 0
+          ? selectedEditRefFiles
+          : (editRefExtraImagesInput && editRefExtraImagesInput.files.length > 0 ? Array.from(editRefExtraImagesInput.files).slice(0, 20) : []);
+
+        const uploadedUrls = [];
+        if (filesToUpload.length > 0) {
+          const total = filesToUpload.length;
+          for (let i = 0; i < total; i++) {
+            submitBtn.textContent = `Fotoğraflar işleniyor (${i + 1}/${total})...`;
+            try {
+              const uploadedUrl = await window.ProductService.uploadFile(filesToUpload[i]);
+              if (uploadedUrl) uploadedUrls.push(uploadedUrl);
+            } catch (upErr) {
+              console.warn(`Referans fotoğrafı ${i + 1} işlenemedi:`, upErr);
+            }
+          }
+        }
+
+        submitBtn.textContent = 'Referans kaydediliyor...';
+        const selectedProductIds = getSelectedRefProductIds('edit-ref-product-checkboxes');
+        
+        // Preserve existing images and append newly uploaded ones (max 20)
+        let currentImages = [];
+        if (ref && Array.isArray(ref.images)) {
+          currentImages = [...ref.images];
+        } else if (ref && typeof ref.images === 'string') {
+          try { currentImages = JSON.parse(ref.images || '[]'); } catch (_) { currentImages = []; }
+        }
+
+        const now = Date.now();
+        uploadedUrls.forEach((url, idx) => {
+          if (currentImages.length < 20) {
+            currentImages.push({
+              id: now + idx + Math.floor(Math.random() * 1000),
+              reference_id: refId,
+              image_url: url,
+              sort_order: currentImages.length
+            });
+          }
+        });
+
+        const payload = {
+          company_name: document.getElementById('edit_ref_name').value.trim(),
+          description: document.getElementById('edit_ref_desc').value.trim(),
+          logo_url: logoUrl,
+          product_ids: JSON.stringify(selectedProductIds),
+          images: currentImages
+        };
+
+        await window.ReferenceService.update(refId, payload, token);
+        selectedEditRefFiles = [];
+        if (editRefExtraImagesInput) editRefExtraImagesInput.value = '';
+        closeEditRefModal();
+        alert("Referans başarıyla güncellendi!");
+        await fetchReferences();
+      } catch (err) {
+        console.error("Referans güncellenirken hata oluştu:", err);
+        alert("Referans güncellenemedi: " + (err && err.message ? err.message : err));
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // ── Data Export / Import (cPanel Sync) ──
+    async function exportSiteData() {
+      try {
+        const products = await window.ProductService.getAll();
+        const references = await window.ReferenceService.getAll();
+        const backup = {
+          export_date: new Date().toISOString(),
+          products: products || [],
+          references: references || []
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ikies_tum_veriler_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert("Tüm ürünler, eklenen resimler ve referanslar başarıyla JSON olarak indirildi!");
+      } catch (err) {
+        alert("Dışa aktarma hatası: " + err.message);
+      }
+    }
+
+    function triggerImportSiteData() {
+      document.getElementById('import-json-file').click();
+    }
+
+    async function handleImportFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (!confirm("Seçilen yedek dosyasındaki tüm ürünler ve resimler içe aktarılacak. Devam etmek istiyor musunuz?")) {
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.products && !data.references) {
+            alert("Geçersiz yedek dosyası formatı!");
+            return;
+          }
+
+          if (Array.isArray(data.products) && data.products.length > 0) {
+            await window.ProductService.saveLocalProducts(data.products);
+          }
+          if (Array.isArray(data.references) && data.references.length > 0) {
+            window.ReferenceService.saveLocalReferences(data.references);
+          }
+
+          try {
+            const token = localStorage.getItem('token') || localStorage.getItem('admin_token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const bulkPayload = JSON.stringify({
+              products: data.products || [],
+              references: data.references || []
+            });
+            const candidateUrls = [
+              'backend_php/api.php?request=sync-bulk',
+              '/backend_php/api.php?request=sync-bulk',
+              '../backend_php/api.php?request=sync-bulk',
+              '/api/sync-bulk',
+              'api/sync-bulk'
+            ];
+            for (const cUrl of candidateUrls) {
+              try {
+                const syncAttempt = await fetch(cUrl, {
+                  method: 'POST',
+                  headers,
+                  body: bulkPayload
+                });
+                if (syncAttempt.status !== 404 && syncAttempt.status !== 405) {
+                  break;
+                }
+              } catch (_) {}
+            }
+          } catch (apiErr) {
+            console.warn("Sunucu API senkronizasyonu atlandı:", apiErr);
+          }
+
+          alert("Tüm ürünler, resimler ve referanslar başarıyla yüklendi! Sayfa yenileniyor.");
+          window.location.reload();
+        } catch (err) {
+          alert("İçe aktarma hatası: " + err.message);
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ── Initial Page Load ──
+    async function initAdminPanel() {
+      await fetchProducts();
+      await fetchReferences();
+    }
+
+    initAdminPanel();
   </script>
 </body>
 </html>

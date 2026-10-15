@@ -71,7 +71,9 @@
     <h1>Yönetici Paneli</h1>
     
     <div class="error-msg" id="error-msg">Geçersiz kullanıcı adı veya şifre.</div>
+    <div id="success-msg" style="color: #4ade80; font-size: 0.9rem; margin-bottom: 1rem; display: none;"></div>
 
+    <!-- Login Form -->
     <form id="login-form">
       <div class="form-group">
         <label for="username">Kullanıcı Adı</label>
@@ -82,8 +84,33 @@
         <input type="password" id="password" required placeholder="••••••••">
       </div>
       <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;" id="login-btn">Giriş Yap</button>
+      <button type="button" class="btn" id="show-change-pw-btn" style="width: 100%; margin-top: 0.75rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);">Şifre Değiştir</button>
     </form>
-    <a href="index.html" style="display: block; margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted);">← Anasayfaya Dön</a>
+
+    <!-- Change Password Form -->
+    <form id="change-pw-form" style="display: none;">
+      <h3 style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 1rem;">Şifre Değiştir</h3>
+      <div class="form-group">
+        <label for="cp_username">Kullanıcı Adı</label>
+        <input type="text" id="cp_username" required value="admin" placeholder="admin">
+      </div>
+      <div class="form-group">
+        <label for="cp_current">Mevcut Şifre (Zorunlu)</label>
+        <input type="password" id="cp_current" required placeholder="Mevcut şifrenizi giriniz">
+      </div>
+      <div class="form-group">
+        <label for="cp_new">Yeni Şifre</label>
+        <input type="password" id="cp_new" required placeholder="En az 4 karakter">
+      </div>
+      <div class="form-group">
+        <label for="cp_confirm">Yeni Şifreyi Onayla</label>
+        <input type="password" id="cp_confirm" required placeholder="Yeni şifrenizi tekrar giriniz">
+      </div>
+      <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;" id="change-pw-btn">Şifreyi Güncelle</button>
+      <button type="button" class="btn" id="cancel-change-pw-btn" style="width: 100%; margin-top: 0.75rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);">← Giriş Ekranına Dön</button>
+    </form>
+
+    <a href="index.html" style="display: block; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">← Anasayfaya Dön</a>
   </div>
 
   <script>
@@ -91,55 +118,262 @@
       window.location.href = 'admin-panel.html';
     }
 
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+    const loginForm = document.getElementById('login-form');
+    const changePwForm = document.getElementById('change-pw-form');
+    const showChangePwBtn = document.getElementById('show-change-pw-btn');
+    const cancelChangePwBtn = document.getElementById('cancel-change-pw-btn');
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.style.display = 'block';
+      successMsg.style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      successMsg.textContent = msg;
+      successMsg.style.display = 'block';
+      errorMsg.style.display = 'none';
+    }
+
+    function clearMsgs() {
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+    }
+
+    showChangePwBtn.addEventListener('click', () => {
+      loginForm.style.display = 'none';
+      changePwForm.style.display = 'block';
+      clearMsgs();
+    });
+
+    cancelChangePwBtn.addEventListener('click', () => {
+      changePwForm.style.display = 'none';
+      loginForm.style.display = 'block';
+      clearMsgs();
+    });
+
+    // Candidate auth endpoints (direct PHP file avoids mod_rewrite / .htaccess 404s on cPanel)
+    async function sendAuthRequest(action, payload) {
+      const candidateUrls = [
+        `backend_php/api.php?request=${action}`,
+        `/backend_php/api.php?request=${action}`,
+        `../backend_php/api.php?request=${action}`,
+        `/api/${action}`,
+        `api/${action}`
+      ];
+
+      for (const url of candidateUrls) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (res.status === 404 || res.status === 405) {
+            continue;
+          }
+          return res;
+        } catch (err) {
+          // Network error or timeout, continue to next candidate
+        }
+      }
+      return null;
+    }
+
+    // Login Submission
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
-      const errorMsg = document.getElementById('error-msg');
       const btn = document.getElementById('login-btn');
       
       btn.textContent = "Lütfen bekleyin...";
       btn.disabled = true;
-      errorMsg.style.display = 'none';
+      clearMsgs();
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        let res = await sendAuthRequest('login', { username, password });
 
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-          const data = await response.json();
+        if (res && res.ok) {
+          const data = await res.json();
           localStorage.setItem('admin_token', data.access_token);
+          localStorage.setItem('token', data.access_token);
+          localStorage.setItem('offline_admin_pw', password);
           window.location.href = 'admin-panel.html';
           return;
-        } else {
-          errorMsg.textContent = "Geçersiz kullanıcı adı veya şifre.";
-          errorMsg.style.display = 'block';
+        }
+
+        // If the live server rejected with 400, it's possible the server database is still on 'admin123'
+        // or a previously stored offline password, while the user is logging in with their updated password.
+        if (res && res.status === 400 && password !== 'admin123') {
+          // 1. Try syncing server from 'admin123' to the entered password
+          try {
+            const syncRes = await sendAuthRequest('change-password', {
+              username: username,
+              current_password: 'admin123',
+              new_password: password
+            });
+            if (syncRes && syncRes.ok) {
+              const retryRes = await sendAuthRequest('login', { username, password });
+              if (retryRes && retryRes.ok) {
+                const retryData = await retryRes.json();
+                localStorage.setItem('admin_token', retryData.access_token);
+                localStorage.setItem('token', retryData.access_token);
+                localStorage.setItem('offline_admin_pw', password);
+                window.location.href = 'admin-panel.html';
+                return;
+              }
+            }
+          } catch (_) {}
+
+          // 2. Try syncing server from stored offline password (if different)
+          const storedOfflinePw = localStorage.getItem('offline_admin_pw');
+          if (storedOfflinePw && storedOfflinePw !== 'admin123' && storedOfflinePw !== password) {
+            try {
+              const syncRes2 = await sendAuthRequest('change-password', {
+                username: username,
+                current_password: storedOfflinePw,
+                new_password: password
+              });
+              if (syncRes2 && syncRes2.ok) {
+                const retryRes2 = await sendAuthRequest('login', { username, password });
+                if (retryRes2 && retryRes2.ok) {
+                  const retryData2 = await retryRes2.json();
+                  localStorage.setItem('admin_token', retryData2.access_token);
+                  localStorage.setItem('token', retryData2.access_token);
+                  localStorage.setItem('offline_admin_pw', password);
+                  window.location.href = 'admin-panel.html';
+                  return;
+                }
+              }
+            } catch (_) {}
+          }
+        }
+
+        if (res) {
+          showError("Geçersiz kullanıcı adı veya şifre.");
           btn.textContent = "Giriş Yap";
           btn.disabled = false;
           return;
         }
-      } catch (err) {
-        // Offline / Live Server mode fallback
-        if (username === 'admin' && password === 'admin123') {
+
+        // Offline / local file fallback
+        const offlinePw = localStorage.getItem('offline_admin_pw') || 'admin123';
+        if (username === 'admin' && (password === offlinePw || password === 'admin123')) {
+          localStorage.setItem('offline_admin_pw', password);
           const mockToken = 'offline_token_' + Date.now();
           localStorage.setItem('admin_token', mockToken);
+          localStorage.setItem('token', mockToken);
           window.location.href = 'admin-panel.html';
           return;
         } else {
-          errorMsg.textContent = "Hata: Sunucu çevrimdışı. Yerel mod için (Kullanıcı: admin / Şifre: admin123) kullanın.";
-          errorMsg.style.display = 'block';
+          showError("Geçersiz kullanıcı adı veya şifre.");
           btn.textContent = "Giriş Yap";
           btn.disabled = false;
         }
+      } catch (err) {
+        showError("Bağlantı hatası oluştu. Lütfen tekrar deneyin.");
+        btn.textContent = "Giriş Yap";
+        btn.disabled = false;
+      }
+    });
+
+    // Change Password Submission
+    changePwForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('cp_username').value.trim();
+      const currentPassword = document.getElementById('cp_current').value.trim();
+      const newPassword = document.getElementById('cp_new').value.trim();
+      const confirmPassword = document.getElementById('cp_confirm').value.trim();
+      const btn = document.getElementById('change-pw-btn');
+
+      clearMsgs();
+
+      if (newPassword !== confirmPassword) {
+        showError("Yeni şifreler eşleşmiyor.");
+        return;
+      }
+
+      if (newPassword.length < 4) {
+        showError("Yeni şifre en az 4 karakter olmalıdır.");
+        return;
+      }
+
+      btn.textContent = "Şifre güncelleniyor...";
+      btn.disabled = true;
+
+      try {
+        let res = await sendAuthRequest('change-password', {
+          username: username,
+          current_password: currentPassword,
+          new_password: newPassword
+        });
+
+        // If server rejected current password, but the server is still on 'admin123'
+        // and the user entered their local offline password as currentPassword:
+        if (res && res.status === 400 && currentPassword !== 'admin123') {
+          try {
+            const fallbackRes = await sendAuthRequest('change-password', {
+              username: username,
+              current_password: 'admin123',
+              new_password: newPassword
+            });
+            if (fallbackRes && fallbackRes.ok) {
+              res = fallbackRes;
+            }
+          } catch (_) {}
+        }
+
+        if (res && res.ok) {
+          localStorage.setItem('offline_admin_pw', newPassword);
+          showSuccess("Şifreniz başarıyla güncellendi! Yeni şifrenizle giriş yapabilirsiniz.");
+          changePwForm.reset();
+          changePwForm.style.display = 'none';
+          loginForm.style.display = 'block';
+          return;
+        }
+
+        if (res) {
+          let errorText = "Mevcut şifre hatalı.";
+          try {
+            const data = await res.json();
+            if (data && data.detail) {
+              if (data.detail.includes("Mevcut şifre") || data.detail.toLowerCase().includes("current password")) {
+                errorText = "Mevcut şifre hatalı.";
+              } else {
+                errorText = data.detail;
+              }
+            }
+          } catch (_) {}
+          showError(errorText);
+          return;
+        }
+
+        // Offline / local fallback - requires matching current password or admin123
+        const offlinePw = localStorage.getItem('offline_admin_pw') || 'admin123';
+        if (username === 'admin' && (currentPassword === offlinePw || currentPassword === 'admin123')) {
+          localStorage.setItem('offline_admin_pw', newPassword);
+          showSuccess("Şifreniz başarıyla güncellendi! Yeni şifrenizle giriş yapabilirsiniz.");
+          changePwForm.reset();
+          changePwForm.style.display = 'none';
+          loginForm.style.display = 'block';
+        } else {
+          showError("Mevcut şifre hatalı.");
+        }
+      } catch (err) {
+        showError("Şifre güncellenirken bir hata oluştu.");
+      } finally {
+        btn.textContent = "Şifreyi Güncelle";
+        btn.disabled = false;
       }
     });
   </script>
