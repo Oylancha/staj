@@ -8,43 +8,64 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projeler & Ürünler | İkies Elektronik</title>
-  <link rel="stylesheet" href="css/global.css?v=2" />
-  <link rel="stylesheet" href="css/components.css?v=2" />
+  <link rel="stylesheet" href="css/global.css?v=3" />
+  <link rel="stylesheet" href="css/components.css?v=4" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('ikies_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_) {}
+    })();
+  </script>
 </head>
 <body>
   
-  <nav class="navbar">
+  <!-- Navbar Component -->
+  <header class="navbar">
     <div class="logo-container">
-      <a href="index.html" class="logo-text">İkies Elektronik</a>
+      <a href="index.html" class="logo-text">
+        <img src="images/logo.png" alt="İkies Elektronik Logo" class="logo-img">
+        <span>İkies Elektronik</span>
+      </a>
     </div>
-    <button class="menu-toggle">&#9776;</button>
-    <ul class="nav-links">
-      <li><a href="index.html">Anasayfa</a></li>
-      <li><a href="projects.html">Ürünler & Projeler</a></li>
-      <li><a href="manuals.html">Kılavuzlar</a></li>
-      <li><a href="references.html">Referanslar</a></li>
-      <li><a href="cart.html" class="cart-nav-link">Sepet <span id="cart-badge" style="display:none;">0</span></a></li>
-      <li><a href="admin-login.html" style="opacity: 0.6;">Yönetici Girişi</a></li>
-    </ul>
-  </nav>
+    <div class="nav-right">
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">Anasayfa</a></li>
+          <li><a href="projects.html" class="active">Ürünler & Projeler</a></li>
+          <li><a href="manuals.html">Kılavuzlar</a></li>
+          <li><a href="references.html">Referanslar</a></li>
+          <li><a href="cart.html" class="cart-nav-link">Sepet <span id="cart-badge">0</span></a></li>
+          <li><a href="admin-login.html" class="btn btn-outline btn-sm" style="margin-left: 0.5rem;">Yönetici Girişi</a></li>
+        </ul>
+      </nav>
+      <button class="theme-toggle-btn" aria-label="Temayı Değiştir" title="Açık/Koyu Tema">
+        <svg class="sun-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+      <button class="menu-toggle" aria-label="Menüyü Aç/Kapat">&#9776;</button>
+    </div>
+  </header>
 
-  <div class="container animate-fade-in delay-100">
-    <div style="text-align: center; margin-bottom: 3rem;">
-      <h1 style="font-size: 3rem; color: var(--accent-red);">Tüm Ürünler ve Projeler</h1>
-      <p style="color: var(--text-muted); font-size: 1.1rem;">Katalogumuzdaki Tüm Akıllı Sistemler ve Çözümler</p>
+  <main class="container animate-fade-in delay-100" style="padding-top: 3.5rem; padding-bottom: 4rem;">
+    <div style="text-align: center; max-width: 650px; margin: 0 auto 3rem auto;">
+      <span class="badge badge-secondary" style="margin-bottom: 0.75rem;">Katalog</span>
+      <h1 class="tracking-tight" style="font-size: 2.25rem; margin-bottom: 0.75rem;">Tüm Ürünler ve Projeler</h1>
+      <p class="text-muted" style="font-size: 1rem; line-height: 1.6;">Anten de-icing sistemleri, RS485 kontrol kartları ve endüstriyel sensör çözümlerimiz</p>
     </div>
 
-    <div class="card-grid" id="dynamic-products-grid">
-      <p style="text-align: center; color: var(--text-muted); width: 100%;">Ürünler yükleniyor...</p>
+    <div class="card-grid catalog-grid" id="dynamic-products-grid">
+      <p style="text-align: center; color: hsl(var(--muted-foreground)); width: 100%; grid-column: 1 / -1; padding: 3rem 0;">Ürünler yükleniyor...</p>
     </div>
-  </div>
+  </main>
 
   <footer class="footer">
     <p class="footer-text">© 2026 İkies Elektronik. Tüm Hakları Saklıdır.</p>
   </footer>
 
-  <script src="js/app.js?v=3"></script>
+  <script src="js/app.js?v=8"></script>
   <script>
     async function loadProducts() {
       const grid = document.getElementById('dynamic-products-grid');
@@ -52,11 +73,11 @@
         const products = await window.ProductService.getAll();
         
         if (!products || products.length === 0) {
-          grid.innerHTML = '<p style="text-align: center; color: var(--text-muted); width: 100%;">Henüz hiç ürün eklenmemiş.</p>';
+          grid.innerHTML = '<p style="text-align: center; color: hsl(var(--muted-foreground)); width: 100%; grid-column: 1 / -1; padding: 3rem 0;">Henüz hiç ürün eklenmemiş.</p>';
           return;
         }
 
-        grid.innerHTML = ''; // Clear loading text
+        grid.innerHTML = '';
         
         products.forEach(p => {
           const card = document.createElement('div');
@@ -66,24 +87,35 @@
             : (p.description || 'İkies Elektronik profesyonel ürün modülü.');
           
           const imgSrc = p.image_url || 'images/placeholder.svg';
+          const badgeType = p.parent_id 
+            ? '<span class="badge badge-outline" style="font-size:0.7rem;">Modül</span>' 
+            : '<span class="badge badge-secondary" style="font-size:0.7rem;">Ana Ürün</span>';
 
           card.innerHTML = `
             <div class="card-img-container">
               <img src="${imgSrc}" alt="${p.name}" class="card-img" onerror="this.onerror=null;this.src='images/placeholder.svg';">
             </div>
-            <div class="card-content">
-              <h3 class="card-title">${p.name}</h3>
-              <p class="card-desc">${shortDesc}</p>
-              <div class="card-action">
-                <a href="item.html?id=${p.id}" class="btn">Detayları İncele</a>
+            <div class="card-header">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+                <h3 class="card-title">${p.name}</h3>
+                ${badgeType}
               </div>
+            </div>
+            <div class="card-content">
+              <p class="card-desc">${shortDesc}</p>
+            </div>
+            <div class="card-footer">
+              <a href="item.html?id=${p.id}" class="btn btn-outline" style="width: 100%;">
+                <span class="btn-text-full">Detayları İncele &rarr;</span>
+                <span class="btn-text-short">İncele &rarr;</span>
+              </a>
             </div>
           `;
           grid.appendChild(card);
         });
       } catch (err) {
         console.error("Failed to load products:", err);
-        grid.innerHTML = '<p style="text-align: center; color: var(--accent-red); width: 100%;">Ürünler yüklenirken bir hata oluştu.</p>';
+        grid.innerHTML = '<p style="text-align: center; color: hsl(var(--primary)); width: 100%; grid-column: 1 / -1;">Ürünler yüklenirken bir hata oluştu.</p>';
       }
     }
 

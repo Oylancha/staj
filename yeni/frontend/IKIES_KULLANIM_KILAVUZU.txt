@@ -1,0 +1,228 @@
+================================================================================
+                    İKİES ELEKTRONİK - WEB SİTESİ VE
+                 YÖNETİM (ADMIN) PANELİ KULLANIM KILAVUZU
+================================================================================
+
+Bu kılavuz, İkies Elektronik kurumsal web sitesinin genel yapısını, sitede 
+yer alan bölümleri ve yönetim (admin) panelinin nasıl kullanılacağını şirket 
+çalışanlarına adım adım ve anlaşılır şekilde aktarmak amacıyla hazırlanmıştır.
+
+
+================================================================================
+1. WEB SİTESİ GENEL YAPISI VE SAYFALAR
+================================================================================
+
+Web sitesi, modern ve şık arayüz standartlarına uygun olarak tasarlanmış olup 
+hem masaüstü bilgisayarlarda hem de mobil cihazlarda tam uyumlu çalışır.
+
+1.1. Anasayfa (index.html)
+--------------------------
+- Şirketimizin sunduğu ana elektronik çözümleri, dinamik görsel kaydırıcı 
+  (slider) ve öne çıkan ürün tanıtımları yer alır.
+- Çözümlerimiz, referanslarımız ve iletişim bilgilerimize hızlı erişim sağlar.
+- Sağ üstte açık/koyu (light/dark) tema geçiş butonu bulunur.
+
+1.2. Projeler & Ürünler Sayfası (projects.html)
+-----------------------------------------------
+- Tüm elektronik kartlar, sensörler ve projeler kategori ve sistem hiyerarşisine 
+  göre listelenir.
+- Kullanıcılar arama çubuğu ve filtreler ile istedikleri ürüne hızla ulaşabilir.
+
+1.3. Ürün Detay Sayfası (item.html)
+-----------------------------------
+- Seçilen ürünün 20 adede kadar yüksek çözünürlüklü fotoğraf galerisi, 
+  ayrıntılı teknik açıklamaları ve özellikleri gösterilir.
+- "Teknik Kılavuz İndir (PDF)" butonu: Ürüne ait teknik doküman doğrudan indirilir.
+- "Sepete Ekle" butonu: Müşteriler ürünü teklif sepetine ekleyebilir.
+
+1.4. Referanslar Sayfası (references.html)
+------------------------------------------
+- Şirketimizin birlikte çalıştığı kurum ve şirketlerin logoları, yapılan projeler 
+  ve o kurum için üretilen ürünler listelenir.
+- Ziyaretçiler referans firmayı seçtiğinde, firmaya üretilen ürünleri ve detayları 
+  inceleyebilir.
+
+1.5. Kılavuzlar Sayfası (manuals.html)
+--------------------------------------
+- Satıştaki ve üretimdeki tüm ürünlerin PDF kullanım kılavuzları toplu halde 
+  burada yer alır. Müşteriler tek tıkla cihaz kılavuzlarını indirebilir.
+
+1.6. Teklif Sepeti (cart.html)
+------------------------------
+- Müşterilerin seçtiği ürünlerin adetlerini belirleyip doğrudan şirketimize 
+  resmi teklif/sipariş talebi göndermesini sağlar.
+- Müşteri; Firma Adı, Yetkili Adı, E-posta ve Telefon bilgilerini girerek 
+  talebi iletir. Talep şirket e-posta adresimize otomatik olarak ulaşır.
+
+1.7. İletişim (contact.html)
+----------------------------
+- Şirketimizin güncel adresi:
+  İçerenköy Mh. Necmettin Erbakan Cad, İçerenköy, Ahmet Tarık Sok. No: 35B, 34752 Ataşehir/İstanbul
+- İletişim formu, doğrudan telefon arama bağlantısı ve Google Haritalar konumu yer alır.
+
+
+================================================================================
+2. YÖNETİCİ (ADMIN) PANELİNE GİRİŞ
+================================================================================
+
+Admin paneli, sitedeki ürünleri, fotoğrafları, kılavuzları ve referansları 
+hiçbir kod bilgisine ihtiyaç duymadan yönetmenizi sağlar.
+
+2.1. Giriş Adresi ve Bilgileri:
+-------------------------------
+- Giriş Adresi: https://site-adresiniz.com/admin-login.html
+- Kullanıcı Adı: admin
+- Varsayılan Şifre: Serdar1
+
+2.2. Şifre Değiştirme:
+----------------------
+1. Giriş ekranında "Şifre Değiştir" butonuna tıklayın.
+2. Kullanıcı Adı (admin), Mevcut Şifre ve Yeni Şifrenizi girin.
+3. "Şifreyi Güncelle" butonuna bastığınızda şifreniz güncellenir.
+
+2.3. Acil Durum Şifre Sıfırlama:
+--------------------------------
+Şifrenizi unutursanız veya giriş yapamazsanız:
+- Tarayıcınızda şu adresi açın: https://site-adresiniz.com/backend_php/reset.php
+- Karşınıza çıkan yeşil ekranda şifreniz doğrudan 'Serdar1' olarak yenilenecektir.
+  İsterseniz kutucuğa başka bir şifre yazıp da kaydedebilirsiniz.
+
+
+================================================================================
+3. YÖNETİM PANELİ KULLANIMI (ADIM ADIM)
+================================================================================
+
+Admin paneline giriş yaptığınızda karşınıza iki ana yönetim alanı çıkar:
+A) Ürün Yönetimi & Hiyerarşi Ağacı (Branch System)
+B) Referans Yönetimi (References Management)
+
+--------------------------------------------------------------------------------
+3.1. YENİ ÜRÜN EKLEME
+--------------------------------------------------------------------------------
+Panelin sol üst kısmındaki "Yeni Ürün Ekle" formunu kullanın:
+
+1. Ürün Adı: Ürünün resmi adını yazın (Örn: De-Icing Kontrol Ünitesi).
+2. Açıklama: Ürünün ne işe yaradığını, teknik özelliklerini ve işlevini yazın.
+3. Ürün Görselleri:
+   - "Dosya Seç" butonuna tıklayarak bilgisayarınızdan ürün fotoğraflarını seçin.
+   - Birden fazla fotoğraf seçebilirsiniz (En fazla 20 adet).
+   - İPUCU: Seçtiğiniz ilk görsel ürünün ana vitrin görseli olur.
+   - Seçilen fotoğraflar formun altında küçük önizleme kareleri halinde görünür.
+4. Teknik Kılavuz Yükle (PDF / DOC) (İsteğe Bağlı):
+   - Varsa ürüne ait PDF kılavuz dosyasını seçin.
+   - Bu dosya yüklendiğinde sitedeki "Kılavuzlar" sayfasına ve ürünün detay 
+     sayfasına otomatik indirme butonu eklenir.
+5. Bağlı Olduğu Sistem (Parent):
+   - Ürün bağımsız bir ana ürün ise "Bağımsız (Ana Ürün)" olarak bırakın.
+   - Eğer başka bir ana ünitenin alt sensörü/kartı ise, listeden bağlı olduğu 
+     ana ürünü seçin (Bu sayede sağ taraftaki görsel ürün ağacına alt dal olarak bağlanır).
+6. "Ürünü Ekle" butonuna basın. Sayfa yenilenmeden ürün veritabanına kaydedilir 
+   ve canlı sitede anında yayına girer.
+
+--------------------------------------------------------------------------------
+3.2. MEVCUT ÜRÜNLERİ DÜZENLEME VE SİLME (ÜRÜN AĞACI)
+--------------------------------------------------------------------------------
+Panelin sağ tarafında "Ürün Hiyerarşisi (Branch System)" ağacı bulunur:
+
+- Ağaç üzerindeki (+) ve (-) butonları veya fare tekerleği ile ağacı 
+  yakınlaştırıp uzaklaştırabilirsiniz.
+- "Tam Ekran" butonu (⛶) ile ağacı tüm ekrana yayabilirsiniz.
+- Bir ürünü düzenlemek için ağaç üzerindeki ürün kutucuğuna tıklayın:
+  * Açılan pencerede ürün adını ve açıklamasını değiştirebilirsiniz.
+  * Mevcut fotoğrafları tek tek "✕" simgesine basarak silebilirsiniz.
+  * "Fotoğraf Ekle" butonuyla yeni fotoğraflar ekleyebilirsiniz (Maksimum 20).
+  * Kılavuzu değiştirebilir veya silebilirsiniz.
+  * Bağlı olduğu üst sistemi (Parent) güncelleyebilirsiniz.
+  * "Değişiklikleri Kaydet" butonuna basarak güncellemeyi tamamlayabilirsiniz.
+- Bir ürünü tamamen kaldırmak için ürün kutucuğundaki kırmızı "Sil" butonuna basın.
+
+--------------------------------------------------------------------------------
+3.3. YENİ REFERANS EKLEME
+--------------------------------------------------------------------------------
+Panelin alt kısmındaki "Yeni Referans Ekle" formunu kullanın:
+
+1. Kurum / Şirket Adı: Çalışılan firmanın adını yazın (Örn: Aselsan, Roketsan).
+2. Yapılan Çalışmalar / Açıklama: Firmanın projesinde yaptığımız işleri yazın.
+3. Kurum Logosu: Firmanın logo görselini yükleyin (PNG veya JPG).
+4. Referans Resimleri: Varsa sahada yapılan montaj/cihaz fotoğraflarını seçin (Maks 20).
+5. Üretilen / İlgili Ürünler:
+   - Alttaki kutucuklarda sistemimizdeki ürünler listelenir.
+   - Bu referans firma için hangi ürünler üretildiyse ilgili kutucukları işaretleyin.
+   - Bu sayede referanslar sayfasında firma ile ürünler birbirine otomatik bağlanır.
+6. "Referansı Ekle" butonuna basın.
+
+--------------------------------------------------------------------------------
+3.4. MEVCUT REFERANSLARI DÜZENLEME VE SİLME
+--------------------------------------------------------------------------------
+- "Mevcut Referanslar" başlığı altında kayıtlı tüm firmalar kartlar halinde listelenir.
+- Her kartın sağ tarafında:
+  * "Düzenle": Firma adı, açıklama, logo, resimler ve ilişkili ürünleri günceller.
+  * "Sil": Referansı siteden tamamen kaldırır.
+
+--------------------------------------------------------------------------------
+3.5. SİTE İÇERİK VE GÖRÜNÜM YÖNETİMİ (ARKA PLAN, HAKKIMIZDA, İLETİŞİM & HARİTA)
+--------------------------------------------------------------------------------
+Admin panelindeki "Site İçerik ve Görünüm Yönetimi" bölümünden:
+
+A) Anasayfa Arka Planı (Hero Background Slider):
+   - Anasayfanın en üstünde kayan arka plan fotoğraflarını yönetebilirsiniz.
+   - Bilgisayarınızdan yeni fotoğraflar yükleyebilir, görsel URL'si ekleyebilir,
+     istemediğiniz görsellerin üzerindeki kırmızı çarpı (✕) butonuna basarak 
+     kaldırabilirsiniz.
+   - İstenirse ana başlık, alt başlık ve rozet metinleri de buradan düzenlenebilir.
+   - "Varsayılan Görsellere Sıfırla" butonu ile orijinal görsellere dönülebilir.
+
+B) Hakkımızda Bölümü:
+   - Sitedeki kurumsal tanıtım başlığı, rozet ("1994'ten Günümüze") ve uzun açıklama 
+     paragrafları dilediğiniz gibi güncellenebilir.
+   - Paragraflar arasında bir satır boşluk bırakarak temiz bir görünüm elde edilir.
+
+C) İletişim & Google Haritalar (Google Maps):
+   - Firma adresi, e-posta adresi, telefon numarası güncellenebilir.
+   - "Google Maps Harita Konumu" kutusuna firma adresinizi yazdığınızda veya 
+     "Haritayı Önizle" butonuna bastığınızda, anasayfa ve iletişim sayfasında 
+     adresinizin hemen yanında interaktif bir Google Maps haritası otomatik olarak 
+     görüntülenir.
+
+Tüm bu ayarları tamamladıktan sonra sağ üstteki yeşil/kırmızı "Değişiklikleri Kaydet" 
+butonuna basmanız yeterlidir.
+
+--------------------------------------------------------------------------------
+3.6. TEK TIKLA YEDEK ALMA VE AKTARMA (BACKUP & SYNC)
+--------------------------------------------------------------------------------
+Panelin en üst kısmında yer alan sarı-turuncu banner:
+
+- "Verileri Dışa Aktar (JSON İndir)":
+  Sitedeki tüm ürünleri, açıklamaları, resimleri ve referansları tek bir dosya 
+  halinde bilgisayarınıza yedekler (site_data.json). Haftalık veya aylık olarak 
+  bu butona basıp yedeğinizi bilgisayarınızda saklamanız önerilir.
+
+- "Verileri İçe Aktar (JSON Yükle)":
+  Daha önce indirdiğiniz bir yedeği sisteme tekrar yüklemek veya yerelde 
+  hazırladığınız verileri canlı siteye tek tıkla aktarmak için kullanılır.
+
+
+================================================================================
+4. ÖNEMLİ İPUÇLARI VE PRATİK KURALLAR
+================================================================================
+
+1. Görsel Boyutları:
+   - Ürün ve referans fotoğraflarının gereksiz yere devasa boyutlarda (örneğin 20-30 MB) 
+     olmaması, web sitesinin açılış hızını yüksek tutmak için önemlidir.
+   - Fotoğrafların JPEG, PNG veya WebP formatında olması tavsiye edilir.
+
+2. PDF Kılavuzlar:
+   - Kılavuz dosyalarının PDF formatında yüklenmesi tüm müşterilerin cihazlarında 
+     (telefon, tablet, bilgisayar) sorunsuz açılmasını sağlar.
+
+3. Güvenli Çıkış:
+   - İşlemleriniz bittiğinde sağ üstteki "Çıkış Yap" butonuna tıklayarak yönetici 
+     oturumunu kapatın.
+
+4. Hızlı Destek ve İletişim:
+   - Sitede veya admin panelinde beklenmeyen bir durumla karşılaşırsanız 
+     yönetici ekibimizle iletişime geçebilirsiniz.
+
+================================================================================
+                           İkies Elektronik © 2026
+================================================================================

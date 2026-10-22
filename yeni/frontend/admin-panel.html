@@ -8,9 +8,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Paneli | İkies Elektronik</title>
-  <link rel="stylesheet" href="css/global.css" />
-  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/global.css?v=3" />
+  <link rel="stylesheet" href="css/components.css?v=4" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('ikies_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_) {}
+    })();
+  </script>
   <style>
     .admin-container {
       display: grid;
@@ -20,12 +28,20 @@
       margin: 2rem auto;
       padding: 0 5%;
     }
+    @media (max-width: 900px) {
+      .admin-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 3%;
+      }
+    }
     
     .panel-section {
       background-color: var(--bg-card);
       padding: 2rem;
-      border-radius: 8px;
+      border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
     
     .panel-section h2 {
@@ -44,15 +60,22 @@
     
     .form-group label {
       font-weight: 500;
+      color: var(--text-main);
     }
     
     .form-group input, .form-group textarea, .form-group select {
       padding: 0.75rem;
-      background-color: #111;
+      background-color: hsl(var(--background));
       border: 1px solid var(--border-color);
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       color: var(--text-main);
       font-family: var(--font-family);
+      transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: none;
+      border-color: var(--accent-red);
+      box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
     }
 
     /* ── Tree Toolbar ── */
@@ -68,9 +91,9 @@
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      background: #0d0d0d;
+      background: hsl(var(--muted));
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       padding: 4px 6px;
     }
 
@@ -78,7 +101,7 @@
       background: transparent;
       color: var(--text-muted);
       border: none;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       width: 32px;
       height: 32px;
       cursor: pointer;
@@ -89,7 +112,7 @@
       transition: background 0.2s, color 0.2s;
     }
     .tree-toolbar-btn:hover {
-      background: #222;
+      background: hsl(var(--secondary-hover));
       color: var(--text-main);
     }
     .tree-toolbar-btn.active {
@@ -117,9 +140,9 @@
     .tree-viewport {
       overflow: auto;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background: #0a0a0a;
-      min-height: 200px;
+      border-radius: var(--radius-md);
+      background: hsl(var(--muted) / 0.4);
+      min-height: 240px;
       max-height: 60vh;
       position: relative;
     }
@@ -215,9 +238,10 @@
       font-family: var(--font-family);
       font-size: 14px;
       display: inline-block;
-      border-radius: 5px;
+      border-radius: var(--radius-sm);
       transition: all 0.35s;
-      background-color: #111;
+      background-color: hsl(var(--card));
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
     
     .tree li a.tree-link:hover {
@@ -401,20 +425,21 @@
     .modal-box .form-group textarea,
     .modal-box .form-group select {
       padding: 0.65rem 0.75rem;
-      background-color: #111;
+      background-color: hsl(var(--background));
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       color: var(--text-main);
       font-family: var(--font-family);
       font-size: 0.9rem;
       width: 100%;
+      transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
     }
     .modal-box .form-group input:focus,
     .modal-box .form-group textarea:focus,
     .modal-box .form-group select:focus {
       outline: none;
       border-color: var(--accent-red);
-      box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.15);
+      box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
     }
 
     .modal-file-info {
@@ -465,7 +490,7 @@
       color: var(--text-muted);
     }
     .modal-actions .btn-secondary:hover {
-      background: #222;
+      background: hsl(var(--secondary-hover));
       color: var(--text-main);
       transform: translateY(-2px);
     }
@@ -488,10 +513,10 @@
       position: relative;
       width: 60px;
       height: 48px;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       overflow: hidden;
       border: 1px solid var(--border-color);
-      background: #111;
+      background: hsl(var(--muted));
     }
     .multi-img-preview-item img {
       width: 100%;
@@ -522,18 +547,18 @@
       max-height: 140px;
       overflow-y: auto;
       padding: 6px;
-      background: #0d0d0d;
-      border-radius: 6px;
+      background: hsl(var(--muted) / 0.5);
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border-color);
     }
     .modal-img-card {
       position: relative;
       width: 64px;
       height: 50px;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       overflow: hidden;
-      border: 1px solid #333;
-      background: #181818;
+      border: 1px solid var(--border-color);
+      background: hsl(var(--card));
     }
     .modal-img-card img {
       width: 100%;
@@ -584,18 +609,19 @@
       padding-right: 4px;
     }
     .ref-admin-card {
-      background: #111;
+      background: hsl(var(--card));
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       padding: 1rem 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
     .ref-admin-card:hover {
-      border-color: #444;
+      border-color: hsl(var(--primary));
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     .ref-admin-card-left {
       display: flex;
@@ -607,9 +633,9 @@
     .ref-admin-logo {
       width: 48px;
       height: 48px;
-      border-radius: 6px;
-      background: #1a1a1a;
-      border: 1px solid #333;
+      border-radius: var(--radius-sm);
+      background: hsl(var(--muted));
+      border: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -651,7 +677,7 @@
       background: rgba(230, 57, 70, 0.15);
       color: var(--accent-red);
       border: 1px solid rgba(230, 57, 70, 0.3);
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       padding: 1px 6px;
       font-size: 0.72rem;
       white-space: nowrap;
@@ -667,9 +693,9 @@
       gap: 0.5rem;
       max-height: 160px;
       overflow-y: auto;
-      background: #111;
+      background: hsl(var(--background));
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       padding: 0.6rem;
     }
     .ref-product-checkbox-label {
@@ -684,35 +710,103 @@
       accent-color: var(--accent-red);
       cursor: pointer;
     }
+
+    /* ── Backup Banner ── */
+    .backup-banner {
+      background: hsl(var(--card));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .backup-banner h3 {
+      margin: 0 0 0.3rem 0;
+      font-size: 1.15rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .backup-banner p {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+    .backup-btn-export {
+      padding: 0.6rem 1.1rem;
+      font-size: 0.88rem;
+      background: hsl(var(--secondary));
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .backup-btn-export:hover {
+      background: hsl(var(--secondary-hover));
+      border-color: hsl(var(--primary));
+    }
+    .backup-btn-import {
+      padding: 0.6rem 1.1rem;
+      font-size: 0.88rem;
+      background: var(--accent-red);
+      border: 1px solid var(--accent-red);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .backup-btn-import:hover {
+      background: var(--accent-red-hover);
+      box-shadow: 0 0 10px rgba(230, 57, 70, 0.3);
+    }
   </style>
 </head>
 <body>
   
   <nav class="navbar">
     <div class="logo-container">
+      <img src="images/logo.png" alt="İkies Elektronik Logo" class="logo-img" onerror="this.onerror=null;this.src='data:image/png;base64,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'">
       <span class="logo-text">İkies Elektronik | Admin</span>
     </div>
-    <ul class="nav-links">
-      <li><a href="index.html">Siteye Dön</a></li>
-      <li><a href="#" id="logout-btn" style="color: var(--accent-red);">Çıkış Yap</a></li>
-    </ul>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="#admin-products-section">Ürünler</a></li>
+        <li><a href="#admin-references-section">Referanslar</a></li>
+        <li><a href="#site-settings-section" style="color: var(--accent-red); font-weight: 600;">Site Görünüm & İçerik</a></li>
+        <li><a href="index.html">Siteye Dön</a></li>
+        <li><a href="#" id="logout-btn" style="color: var(--accent-red);">Çıkış Yap</a></li>
+      </ul>
+      <button class="theme-toggle-btn" aria-label="Temayı Değiştir" title="Açık/Koyu Tema">
+        <svg class="sun-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+      <button class="menu-toggle" aria-label="Menüyü Aç/Kapat">&#9776;</button>
+    </div>
   </nav>
 
   <div style="max-width: 1400px; margin: 1.5rem auto 0 auto; padding: 0 5%;">
-    <div style="background: linear-gradient(135deg, #181818, #121212); border: 1px solid #333; border-radius: 10px; padding: 1.25rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+    <div class="backup-banner">
       <div>
-        <h3 style="margin: 0 0 0.3rem 0; font-size: 1.15rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+        <h3>
           <span style="color: var(--accent-red);">⚡</span> Veri Yedekleme & cPanel Senkronizasyonu
         </h3>
-        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+        <p>
           Yerelde eklediğiniz ürünleri, çoklu fotoğrafları ve referans resimlerini tek tıkla indirip cPanel'e aktarabilirsiniz.
         </p>
       </div>
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-        <button type="button" class="btn" onclick="exportSiteData()" style="padding: 0.6rem 1.1rem; font-size: 0.88rem; background: #222; border: 1px solid #444;" title="Yerel tarayıcınızdaki tüm ürün ve resimleri JSON olarak bilgisayarınıza kaydeder">
+        <button type="button" class="backup-btn-export" onclick="exportSiteData()" title="Yerel tarayıcınızdaki tüm ürün ve resimleri JSON olarak bilgisayarınıza kaydeder">
           📥 Verileri Dışa Aktar (JSON İndir)
         </button>
-        <button type="button" class="btn" onclick="triggerImportSiteData()" style="padding: 0.6rem 1.1rem; font-size: 0.88rem;" title="Dışa aktarılan JSON dosyasını cPanel'e / canlı siteye anında yükler">
+        <button type="button" class="backup-btn-import" onclick="triggerImportSiteData()" title="Dışa aktarılan JSON dosyasını cPanel'e / canlı siteye anında yükler">
           📤 Verileri İçe Aktar (JSON Yükle)
         </button>
         <input type="file" id="import-json-file" accept=".json" style="display: none;" onchange="handleImportFileSelected(event)">
@@ -720,7 +814,7 @@
     </div>
   </div>
 
-  <div class="admin-container animate-fade-in delay-100">
+  <div class="admin-container animate-fade-in delay-100" id="admin-products-section">
     
     <div class="panel-section">
       <h2>Yeni Ürün Ekle</h2>
@@ -791,7 +885,7 @@
   </div>
 
   <!-- ── References Management Section (Task 3) ── -->
-  <div class="ref-admin-container animate-fade-in delay-200">
+  <div class="ref-admin-container animate-fade-in delay-200" id="admin-references-section">
     
     <div class="panel-section">
       <h2>Yeni Referans Ekle</h2>
@@ -832,6 +926,169 @@
 
   </div>
 
+  <!-- ── Site Settings Section (Hero Background, About Us, Contact & Google Maps) ── -->
+  <div class="site-settings-container animate-fade-in delay-200" id="site-settings-section" style="max-width: 1400px; margin: 2rem auto; padding: 0 5%;">
+    <div class="panel-section" style="width: 100%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="margin: 0; padding-bottom: 0; border-bottom: none; display: flex; align-items: center; gap: 0.6rem; color: var(--text-main);">
+            <span style="color: var(--accent-red);">🎨</span> Site İçerik ve Görünüm Yönetimi
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0.35rem 0 0 0;">
+            Anasayfa arka plan görselleri (hero background), Hakkımızda kurumsal metinleri ve İletişim / Harita bilgilerini güncelleyin.
+          </p>
+        </div>
+        <button type="button" id="save-site-settings-btn" class="btn" onclick="saveAdminSiteSettings()" style="background: var(--accent-red); color: #fff; padding: 0.65rem 1.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); cursor: pointer;">
+          💾 Değişiklikleri Kaydet
+        </button>
+      </div>
+
+      <div class="settings-grid">
+        
+        <!-- 1. Hero Background Images Card -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <h3>🖼️ Anasayfa Arka Planı (Hero)</h3>
+            <span class="badge badge-secondary" id="bg-count-badge">3 Görsel</span>
+          </div>
+          
+          <div class="form-group">
+            <label style="font-size: 0.85rem; font-weight: 600;">Mevcut Arka Plan Görselleri</label>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: -0.25rem;">
+              Bu görseller anasayfa üst kısmındaki kayan arka plan (slider) olarak gösterilir.
+            </p>
+            <div id="settings_hero_bgs_preview" class="bg-thumbs-grid">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 0.5rem;">
+            <label for="new_hero_bg_file" style="font-size: 0.85rem; font-weight: 600;">Yeni Arka Plan Görseli Yükle</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="file" id="new_hero_bg_file" accept="image/*" style="background: transparent; border: none; padding: 0; flex: 1;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="handleUploadHeroBackground()" style="white-space: nowrap;">
+                📤 Ekle
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 0.5rem;">
+            <label for="new_hero_bg_url" style="font-size: 0.85rem; font-weight: 600;">Veya Görsel URL'si Ekle</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="new_hero_bg_url" placeholder="images/ornek.jpg veya https://..." style="flex: 1;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="handleAddHeroBackgroundUrl()" style="white-space: nowrap;">
+                ➕ Ekle
+              </button>
+            </div>
+          </div>
+
+          <div style="border-top: 1px dashed var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
+            <div class="form-group">
+              <label for="setting_hero_badge">Hero Üst Rozet</label>
+              <input type="text" id="setting_hero_badge" placeholder="Profesyonel De-icing & Sensör Modülleri">
+            </div>
+            <div class="form-group">
+              <label for="setting_hero_title">Hero Ana Başlık</label>
+              <input type="text" id="setting_hero_title" placeholder="Zorlu Koşullara Meydan Okuyoruz">
+            </div>
+            <div class="form-group">
+              <label for="setting_hero_subtitle">Hero Açıklama (Alt Başlık)</label>
+              <textarea id="setting_hero_subtitle" rows="2" placeholder="TV, Uydu, RX, TX Antenleri..."></textarea>
+            </div>
+            <button type="button" class="btn-delete-file" onclick="resetHeroBackgroundsToDefault()" style="font-size: 0.8rem; margin-top: 0.5rem; border: 1px solid var(--border-color); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); cursor: pointer; background: transparent; color: var(--text-muted);">
+              ↺ Varsayılan Görsellere Sıfırla
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. About Us (Hakkımızda) Card -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <h3>🏢 Hakkımızda Bölümü</h3>
+            <span class="badge badge-secondary">Kurumsal</span>
+          </div>
+
+          <div class="form-group">
+            <label for="setting_about_badge">Üst Rozet / Alt Başlık</label>
+            <input type="text" id="setting_about_badge" placeholder="1994'ten Günümüze">
+          </div>
+
+          <div class="form-group">
+            <label for="setting_about_title">Bölüm Başlığı</label>
+            <input type="text" id="setting_about_title" placeholder="Hakkımızda">
+          </div>
+
+          <div class="form-group">
+            <label for="setting_about_content">Hakkımızda Metni</label>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: -0.25rem;">
+              Paragrafları ayırmak için Enter tuşuna basarak satır boşluğu bırakabilirsiniz.
+            </p>
+            <textarea id="setting_about_content" rows="11" style="line-height: 1.6; resize: vertical;" placeholder="1994 yılından beri elektronik ve otomasyon sektöründe..."></textarea>
+          </div>
+        </div>
+
+        <!-- 3. Contact & Google Maps Card -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <h3>📍 İletişim & Harita</h3>
+            <span class="badge badge-secondary">Google Maps</span>
+          </div>
+
+          <div class="form-group">
+            <label for="setting_contact_badge">Rozet</label>
+            <input type="text" id="setting_contact_badge" placeholder="Bize Ulaşın">
+          </div>
+
+          <div class="form-group">
+            <label for="setting_contact_title">Başlık</label>
+            <input type="text" id="setting_contact_title" placeholder="İletişim">
+          </div>
+
+          <div class="form-group">
+            <label for="setting_contact_desc">Açıklama</label>
+            <input type="text" id="setting_contact_desc" placeholder="Projeleriniz ve özel teknik talepleriniz için ekibimizle iletişime geçin">
+          </div>
+
+          <div class="form-group">
+            <label for="setting_contact_address">Firma Adresi</label>
+            <textarea id="setting_contact_address" rows="2" placeholder="İçerenköy Mh. Necmettin Erbakan Cad..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="setting_contact_email">E-posta Adresi</label>
+            <input type="email" id="setting_contact_email" placeholder="info@ikies.net">
+          </div>
+
+          <div class="form-group">
+            <label for="setting_contact_instagram">Instagram Profil Linki</label>
+            <input type="url" id="setting_contact_instagram" placeholder="https://www.instagram.com/ikieselektroniksan?vrfl=aGk4dTF3dnAzaTh1">
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="setting_contact_map_query">Google Maps Harita Konumu / Adresi</label>
+              <button type="button" class="btn btn-outline btn-sm" onclick="previewAdminMap()" style="font-size: 0.75rem; padding: 2px 8px;">
+                Haritayı Önizle
+              </button>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: -0.25rem;">
+              Haritada işaretlenecek adres veya yer ismi.
+            </p>
+            <input type="text" id="setting_contact_map_query" placeholder="İçerenköy Mh. Necmettin Erbakan Cad, İçerenköy, Ahmet Tarık Sok. No: 35B, 34752 Ataşehir/İstanbul">
+            
+            <!-- Live Admin Map Preview -->
+            <div style="margin-top: 0.75rem; height: 160px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-color); background: hsl(var(--muted));">
+              <iframe id="admin-map-preview-iframe" style="width: 100%; height: 100%; border: 0;" src="" loading="lazy"></iframe>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
   <!-- Edit Product Modal -->
   <div class="modal-overlay" id="edit-modal">
     <div class="modal-box">
@@ -854,7 +1111,7 @@
         <div class="form-group">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
             <label style="margin-bottom: 0;">Ürün Fotoğrafları (Kayıtlı Resimler)</label>
-            <span id="edit_existing_count_badge" style="font-size: 0.75rem; background: #222; border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; color: var(--text-muted);">0 / 20</span>
+            <span id="edit_existing_count_badge" style="font-size: 0.75rem; background: hsl(var(--muted)); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; color: var(--text-muted);">0 / 20</span>
           </div>
           <div class="modal-images-gallery" id="edit_images_gallery">
             <!-- Populated via JS with delete buttons -->
@@ -918,7 +1175,7 @@
         <div class="form-group">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
             <label style="margin-bottom: 0;">Referans Resimleri (Kayıtlı Resimler)</label>
-            <span id="edit_ref_existing_count_badge" style="font-size: 0.75rem; background: #222; border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; color: var(--text-muted);">0 / 20</span>
+            <span id="edit_ref_existing_count_badge" style="font-size: 0.75rem; background: hsl(var(--muted)); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; color: var(--text-muted);">0 / 20</span>
           </div>
           <div class="modal-images-gallery" id="edit_ref_images_gallery">
             <!-- Populated via JS with delete buttons -->
@@ -947,12 +1204,25 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=4"></script>
+  <script src="js/app.js?v=8"></script>
   <script>
     // ── Secure routing ──
     const token = localStorage.getItem('admin_token');
     if (!token) {
       window.location.href = 'admin-login.html';
+    }
+
+    // ── Mobile navbar toggle ──
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (menuToggle && navLinks) {
+      menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navLinks.classList.toggle('show');
+      });
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.navbar')) navLinks.classList.remove('show');
+      });
     }
 
     // Logout
@@ -1250,13 +1520,14 @@
           description: document.getElementById('p_desc').value.trim(),
           image_url: uploadedImageUrls[0] || 'images/placeholder.svg',
           manual_url: finalManualUrl,
-          parent_id: document.getElementById('p_parent').value ? parseInt(document.getElementById('p_parent').value, 10) : null
+          parent_id: document.getElementById('p_parent').value ? parseInt(document.getElementById('p_parent').value, 10) : null,
+          images: uploadedImageUrls.slice(1)
         };
 
         const createdProduct = await window.ProductService.create(payload, token);
 
-        // Attach extra images if more than 1 image uploaded
-        if (createdProduct && createdProduct.id && uploadedImageUrls.length > 1) {
+        // Attach extra images if more than 1 image uploaded and not yet saved
+        if (createdProduct && createdProduct.id && uploadedImageUrls.length > 1 && (!createdProduct.images || createdProduct.images.length === 0)) {
           submitBtn.textContent = 'Ek fotoğraflar kaydediliyor...';
           await window.ProductService.addImages(createdProduct.id, uploadedImageUrls.slice(1), token);
         }
@@ -2172,15 +2443,214 @@
       }
     });
 
+    // ── Site Settings Administration (Background, About Us, Contact & Google Maps) ──
+    let currentHeroBackgrounds = [];
+
+    function renderHeroBackgroundThumbnails() {
+      const container = document.getElementById('settings_hero_bgs_preview');
+      const badge = document.getElementById('bg-count-badge');
+      if (!container) return;
+
+      if (badge) {
+        badge.textContent = `${currentHeroBackgrounds.length} Görsel`;
+      }
+
+      if (currentHeroBackgrounds.length === 0) {
+        container.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-muted); font-size: 0.8rem; margin: 0.5rem 0;">Henüz arka plan görseli eklenmedi.</p>';
+        return;
+      }
+
+      container.innerHTML = currentHeroBackgrounds.map((bg, idx) => `
+        <div class="bg-thumb-item" title="Görsel ${idx + 1}">
+          <img src="${bg}" alt="Background ${idx + 1}" onerror="this.src='images/placeholder.svg'">
+          <button type="button" class="thumb-remove-btn" onclick="removeHeroBackground(${idx})" title="Bu görseli kaldır">✕</button>
+          <span style="position: absolute; bottom: 2px; left: 4px; font-size: 10px; background: rgba(0,0,0,0.6); color: #fff; padding: 1px 4px; border-radius: 4px;">#${idx + 1}</span>
+        </div>
+      `).join('');
+    }
+
+    function removeHeroBackground(idx) {
+      if (idx >= 0 && idx < currentHeroBackgrounds.length) {
+        currentHeroBackgrounds.splice(idx, 1);
+        renderHeroBackgroundThumbnails();
+      }
+    }
+
+    async function handleUploadHeroBackground() {
+      const fileInput = document.getElementById('new_hero_bg_file');
+      if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Lütfen önce bilgisayarınızdan bir görsel seçin.");
+        return;
+      }
+      const file = fileInput.files[0];
+      try {
+        const uploadBtn = event?.target;
+        if (uploadBtn) {
+          uploadBtn.disabled = true;
+          uploadBtn.textContent = 'Yükleniyor...';
+        }
+        const url = await window.ProductService.uploadFile(file);
+        if (url) {
+          currentHeroBackgrounds.push(url);
+          renderHeroBackgroundThumbnails();
+          fileInput.value = '';
+        } else {
+          alert("Görsel işlenemedi.");
+        }
+      } catch (err) {
+        alert("Görsel yükleme hatası: " + err.message);
+      } finally {
+        const uploadBtn = event?.target;
+        if (uploadBtn) {
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = '📤 Ekle';
+        }
+      }
+    }
+
+    function handleAddHeroBackgroundUrl() {
+      const input = document.getElementById('new_hero_bg_url');
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) {
+        alert("Lütfen geçerli bir görsel URL'si girin.");
+        return;
+      }
+      currentHeroBackgrounds.push(val);
+      renderHeroBackgroundThumbnails();
+      input.value = '';
+    }
+
+    function resetHeroBackgroundsToDefault() {
+      if (confirm("Hero arka plan görselleri varsayılan görsellere sıfırlansın mı?")) {
+        currentHeroBackgrounds = [
+          'images/IMG_3723.JPG',
+          'images/IMG_3694.JPG',
+          'images/IMG_2004.JPG'
+        ];
+        renderHeroBackgroundThumbnails();
+      }
+    }
+
+    function previewAdminMap() {
+      const queryInput = document.getElementById('setting_contact_map_query');
+      const addressInput = document.getElementById('setting_contact_address');
+      const iframe = document.getElementById('admin-map-preview-iframe');
+      const query = (queryInput?.value || addressInput?.value || '').trim();
+      if (iframe && query) {
+        iframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+      }
+    }
+
+    async function loadAdminSiteSettings() {
+      try {
+        const s = await window.SettingsService.getSettings();
+        currentHeroBackgrounds = Array.isArray(s.hero_backgrounds) ? [...s.hero_backgrounds] : [
+          'images/IMG_3723.JPG',
+          'images/IMG_3694.JPG',
+          'images/IMG_2004.JPG'
+        ];
+        renderHeroBackgroundThumbnails();
+
+        const setVal = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val || '';
+        };
+
+        setVal('setting_hero_badge', s.hero_badge);
+        setVal('setting_hero_title', s.hero_title);
+        setVal('setting_hero_subtitle', s.hero_subtitle);
+
+        setVal('setting_about_badge', s.about_badge);
+        setVal('setting_about_title', s.about_title);
+        setVal('setting_about_content', s.about_content);
+
+        setVal('setting_contact_badge', s.contact_badge);
+        setVal('setting_contact_title', s.contact_title);
+        setVal('setting_contact_desc', s.contact_description);
+        setVal('setting_contact_address', s.contact_address);
+        setVal('setting_contact_email', s.contact_email);
+        setVal('setting_contact_instagram', s.contact_instagram || 'https://www.instagram.com/ikieselektroniksan?vrfl=aGk4dTF3dnAzaTh1');
+        setVal('setting_contact_map_query', s.contact_map_query || s.contact_address);
+
+        previewAdminMap();
+      } catch (err) {
+        console.warn("Site ayarları yüklenemedi:", err);
+      }
+    }
+
+    async function saveAdminSiteSettings() {
+      const saveBtn = document.getElementById('save-site-settings-btn');
+      const origText = saveBtn ? saveBtn.textContent : '';
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Kaydediliyor...';
+      }
+
+      try {
+        const getVal = (id) => {
+          const el = document.getElementById(id);
+          return el ? el.value.trim() : '';
+        };
+
+        const payload = {
+          hero_backgrounds: currentHeroBackgrounds.length > 0 ? currentHeroBackgrounds : [
+            'images/IMG_3723.JPG',
+            'images/IMG_3694.JPG',
+            'images/IMG_2004.JPG'
+          ],
+          hero_badge: getVal('setting_hero_badge'),
+          hero_title: getVal('setting_hero_title'),
+          hero_subtitle: getVal('setting_hero_subtitle'),
+
+          about_badge: getVal('setting_about_badge'),
+          about_title: getVal('setting_about_title'),
+          about_content: getVal('setting_about_content'),
+
+          contact_badge: getVal('setting_contact_badge'),
+          contact_title: getVal('setting_contact_title'),
+          contact_description: getVal('setting_contact_desc'),
+          contact_address: getVal('setting_contact_address'),
+          contact_email: getVal('setting_contact_email'),
+          contact_instagram: getVal('setting_contact_instagram') || 'https://www.instagram.com/ikieselektroniksan?vrfl=aGk4dTF3dnAzaTh1',
+          contact_map_query: getVal('setting_contact_map_query') || getVal('setting_contact_address')
+        };
+
+        const token = localStorage.getItem('token') || localStorage.getItem('admin_token');
+        await window.SettingsService.saveSettings(payload, token);
+
+        if (saveBtn) {
+          saveBtn.textContent = 'Kaydedildi! ✓';
+          saveBtn.style.background = '#16a34a';
+        }
+        alert("Site ayarları (Arka Plan, Hakkımızda, İletişim & Harita) başarıyla kaydedildi!");
+        setTimeout(() => {
+          if (saveBtn) {
+            saveBtn.textContent = origText;
+            saveBtn.style.background = 'var(--accent-red)';
+            saveBtn.disabled = false;
+          }
+        }, 2000);
+      } catch (err) {
+        alert("Kaydetme hatası: " + err.message);
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = origText;
+        }
+      }
+    }
+
     // ── Data Export / Import (cPanel Sync) ──
     async function exportSiteData() {
       try {
         const products = await window.ProductService.getAll();
         const references = await window.ReferenceService.getAll();
+        const settings = await window.SettingsService.getSettings();
         const backup = {
           export_date: new Date().toISOString(),
           products: products || [],
-          references: references || []
+          references: references || [],
+          settings: settings || {}
         };
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -2191,7 +2661,7 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        alert("Tüm ürünler, eklenen resimler ve referanslar başarıyla JSON olarak indirildi!");
+        alert("Tüm ürünler, eklenen resimler, referanslar ve site ayarları başarıyla JSON olarak indirildi!");
       } catch (err) {
         alert("Dışa aktarma hatası: " + err.message);
       }
@@ -2205,7 +2675,7 @@
       const file = event.target.files && event.target.files[0];
       if (!file) return;
 
-      if (!confirm("Seçilen yedek dosyasındaki tüm ürünler ve resimler içe aktarılacak. Devam etmek istiyor musunuz?")) {
+      if (!confirm("Seçilen yedek dosyasındaki tüm ürünler, resimler, referanslar ve site ayarları içe aktarılacak. Devam etmek istiyor musunuz?")) {
         event.target.value = '';
         return;
       }
@@ -2214,7 +2684,7 @@
       reader.onload = async (e) => {
         try {
           const data = JSON.parse(e.target.result);
-          if (!data.products && !data.references) {
+          if (!data.products && !data.references && !data.settings) {
             alert("Geçersiz yedek dosyası formatı!");
             return;
           }
@@ -2225,6 +2695,9 @@
           if (Array.isArray(data.references) && data.references.length > 0) {
             window.ReferenceService.saveLocalReferences(data.references);
           }
+          if (data.settings && typeof data.settings === 'object') {
+            window.SettingsService.saveLocalSettings(data.settings);
+          }
 
           try {
             const token = localStorage.getItem('token') || localStorage.getItem('admin_token');
@@ -2232,7 +2705,8 @@
             if (token) headers['Authorization'] = `Bearer ${token}`;
             const bulkPayload = JSON.stringify({
               products: data.products || [],
-              references: data.references || []
+              references: data.references || [],
+              settings: data.settings || {}
             });
             const candidateUrls = [
               'backend_php/api.php?request=sync-bulk',
@@ -2257,7 +2731,7 @@
             console.warn("Sunucu API senkronizasyonu atlandı:", apiErr);
           }
 
-          alert("Tüm ürünler, resimler ve referanslar başarıyla yüklendi! Sayfa yenileniyor.");
+          alert("Tüm ürünler, resimler, referanslar ve site ayarları başarıyla yüklendi! Sayfa yenileniyor.");
           window.location.reload();
         } catch (err) {
           alert("İçe aktarma hatası: " + err.message);
@@ -2268,13 +2742,30 @@
       reader.readAsText(file);
     }
 
-    // ── Initial Page Load ──
+    // Admin panel initialization
     async function initAdminPanel() {
-      await fetchProducts();
-      await fetchReferences();
+      try {
+        await fetchProducts();
+      } catch (err) {
+        console.error("Products load error:", err);
+      }
+      try {
+        await fetchReferences();
+      } catch (err) {
+        console.error("References load error:", err);
+      }
+      try {
+        await loadAdminSiteSettings();
+      } catch (err) {
+        console.error("Site settings load error:", err);
+      }
     }
 
-    initAdminPanel();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAdminPanel);
+    } else {
+      initAdminPanel();
+    }
   </script>
 </body>
 </html>

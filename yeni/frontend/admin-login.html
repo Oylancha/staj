@@ -8,109 +8,150 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Girişi | İkies Elektronik</title>
-  <link rel="stylesheet" href="css/global.css" />
-  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/global.css?v=3" />
+  <link rel="stylesheet" href="css/components.css?v=4" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('ikies_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_) {}
+    })();
+  </script>
   <style>
     body {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background-color: var(--bg-dark);
+      background: radial-gradient(ellipse 70% 50% at 50% 10%, rgba(230, 57, 70, 0.08), transparent), hsl(var(--background));
+      padding: 1.5rem 1rem;
     }
-    .login-container {
-      background-color: var(--bg-card);
-      padding: 3rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
+
+    .login-card {
+      background-color: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius-xl);
+      padding: 2.5rem 2.25rem;
       width: 100%;
-      max-width: 400px;
-      text-align: center;
+      max-width: 420px;
+      box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px hsl(var(--border));
+      position: relative;
     }
-    .login-container h1 {
-      color: var(--accent-red);
-      margin-bottom: 2rem;
+
+    [data-theme="light"] .login-card {
+      box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.1), 0 0 0 1px hsl(var(--border));
     }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      text-align: left;
-      margin-bottom: 1.5rem;
+
+    .theme-toggle-corner {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
     }
-    .form-group label {
-      font-weight: 500;
-    }
-    .form-group input {
-      padding: 0.75rem;
-      background-color: #111;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      color: var(--text-main);
-      font-family: var(--font-family);
-    }
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--accent-red);
-    }
+
     .error-msg {
-      color: var(--accent-red);
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
+      background-color: hsla(var(--destructive), 0.12);
+      border: 1px solid hsla(var(--destructive), 0.3);
+      color: hsl(0, 85%, 65%);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
       display: none;
+    }
+
+    .success-msg {
+      background-color: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        align-items: flex-start;
+        padding-top: max(2rem, env(safe-area-inset-top));
+      }
+      .login-card {
+        padding: 2rem 1.25rem;
+        border-radius: var(--radius);
+      }
+      .input {
+        min-height: 44px;
+        font-size: 1rem;
+      }
+      .btn {
+        min-height: 44px;
+      }
     }
   </style>
 </head>
 <body>
   
-  <div class="login-container animate-fade-in">
-    <div class="logo-container" style="justify-content: center; margin-bottom: 1rem;">
-      <span class="logo-text">İkies Elektronik</span>
+  <div class="login-card animate-fade-in">
+    <button class="theme-toggle-btn theme-toggle-corner" aria-label="Temayı Değiştir" title="Açık/Koyu Tema">
+      <svg class="sun-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      <svg class="moon-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="index.html" class="logo-text" style="display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; text-decoration: none;">
+        <img src="images/logo.png" alt="İkies Elektronik Logo" class="logo-img">
+        <span>İkies Elektronik</span>
+      </a>
+      <h1 class="tracking-tight" style="font-size: 1.65rem; font-weight: 700; margin-bottom: 0.35rem;">Yönetici Girişi</h1>
+      <p class="text-muted" style="font-size: 0.875rem;">Yönetim paneline erişmek için bilgilerinizi girin</p>
     </div>
-    <h1>Yönetici Paneli</h1>
     
     <div class="error-msg" id="error-msg">Geçersiz kullanıcı adı veya şifre.</div>
-    <div id="success-msg" style="color: #4ade80; font-size: 0.9rem; margin-bottom: 1rem; display: none;"></div>
+    <div class="success-msg" id="success-msg"></div>
 
     <!-- Login Form -->
     <form id="login-form">
       <div class="form-group">
-        <label for="username">Kullanıcı Adı</label>
-        <input type="text" id="username" required placeholder="admin">
+        <label class="label" for="username">Kullanıcı Adı</label>
+        <input type="text" id="username" class="input" required value="admin" placeholder="admin" autocomplete="username">
       </div>
-      <div class="form-group">
-        <label for="password">Şifre</label>
-        <input type="password" id="password" required placeholder="••••••••">
+      <div class="form-group" style="margin-bottom: 1.75rem;">
+        <label class="label" for="password">Şifre</label>
+        <input type="password" id="password" class="input" required placeholder="••••••••" autocomplete="current-password">
       </div>
-      <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;" id="login-btn">Giriş Yap</button>
-      <button type="button" class="btn" id="show-change-pw-btn" style="width: 100%; margin-top: 0.75rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);">Şifre Değiştir</button>
+      <button type="submit" class="btn btn-primary" style="width: 100%; height: 2.5rem;" id="login-btn">Giriş Yap</button>
+      <button type="button" class="btn btn-outline" id="show-change-pw-btn" style="width: 100%; height: 2.5rem; margin-top: 0.75rem;">Şifre Değiştir</button>
     </form>
 
     <!-- Change Password Form -->
     <form id="change-pw-form" style="display: none;">
-      <h3 style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 1rem;">Şifre Değiştir</h3>
+      <h3 class="tracking-tight" style="color: hsl(var(--card-foreground)); font-size: 1.15rem; font-weight: 600; margin-bottom: 1rem;">Şifreyi Güncelle</h3>
       <div class="form-group">
-        <label for="cp_username">Kullanıcı Adı</label>
-        <input type="text" id="cp_username" required value="admin" placeholder="admin">
+        <label class="label" for="cp_username">Kullanıcı Adı</label>
+        <input type="text" id="cp_username" class="input" required value="admin" placeholder="admin">
       </div>
       <div class="form-group">
-        <label for="cp_current">Mevcut Şifre (Zorunlu)</label>
-        <input type="password" id="cp_current" required placeholder="Mevcut şifrenizi giriniz">
+        <label class="label" for="cp_current">Mevcut Şifre</label>
+        <input type="password" id="cp_current" class="input" required placeholder="Mevcut şifrenizi giriniz">
       </div>
       <div class="form-group">
-        <label for="cp_new">Yeni Şifre</label>
-        <input type="password" id="cp_new" required placeholder="En az 4 karakter">
+        <label class="label" for="cp_new">Yeni Şifre</label>
+        <input type="password" id="cp_new" class="input" required placeholder="En az 4 karakter">
       </div>
-      <div class="form-group">
-        <label for="cp_confirm">Yeni Şifreyi Onayla</label>
-        <input type="password" id="cp_confirm" required placeholder="Yeni şifrenizi tekrar giriniz">
+      <div class="form-group" style="margin-bottom: 1.75rem;">
+        <label class="label" for="cp_confirm">Yeni Şifreyi Onayla</label>
+        <input type="password" id="cp_confirm" class="input" required placeholder="Yeni şifrenizi tekrar giriniz">
       </div>
-      <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;" id="change-pw-btn">Şifreyi Güncelle</button>
-      <button type="button" class="btn" id="cancel-change-pw-btn" style="width: 100%; margin-top: 0.75rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);">← Giriş Ekranına Dön</button>
+      <button type="submit" class="btn btn-primary" style="width: 100%; height: 2.5rem;" id="change-pw-btn">Şifreyi Güncelle</button>
+      <button type="button" class="btn btn-outline" id="cancel-change-pw-btn" style="width: 100%; height: 2.5rem; margin-top: 0.75rem;">← Giriş Ekranına Dön</button>
     </form>
 
-    <a href="index.html" style="display: block; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">← Anasayfaya Dön</a>
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="index.html" class="text-muted" style="font-size: 0.85rem; text-decoration: none; transition: color 0.15s ease;" onmouseover="this.style.color='hsl(var(--foreground))'" onmouseout="this.style.color='hsl(var(--muted-foreground))'">
+        ← Anasayfaya Dön
+      </a>
+    </div>
   </div>
 
   <script>
@@ -156,10 +197,21 @@
 
     // Candidate auth endpoints (direct PHP file avoids mod_rewrite / .htaccess 404s on cPanel)
     async function sendAuthRequest(action, payload) {
-      const candidateUrls = [
+      const isFrontendSubdir = typeof window !== 'undefined' && window.location.pathname.includes('/frontend');
+      const candidateUrls = isFrontendSubdir ? [
+        `../backend_php/api.php?request=${action}`,
+        `/backend_php/api.php?request=${action}`,
+        `backend_php/api.php?request=${action}`,
+        `../api.php?request=${action}`,
+        `api.php?request=${action}`,
+        `/api/${action}`,
+        `api/${action}`
+      ] : [
         `backend_php/api.php?request=${action}`,
         `/backend_php/api.php?request=${action}`,
         `../backend_php/api.php?request=${action}`,
+        `api.php?request=${action}`,
+        `api/api.php?request=${action}`,
         `/api/${action}`,
         `api/${action}`
       ];
@@ -167,7 +219,7 @@
       for (const url of candidateUrls) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 4000);
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -206,79 +258,48 @@
           const data = await res.json();
           localStorage.setItem('admin_token', data.access_token);
           localStorage.setItem('token', data.access_token);
-          localStorage.setItem('offline_admin_pw', password);
           window.location.href = 'admin-panel.html';
           return;
-        }
-
-        // If the live server rejected with 400, it's possible the server database is still on 'admin123'
-        // or a previously stored offline password, while the user is logging in with their updated password.
-        if (res && res.status === 400 && password !== 'admin123') {
-          // 1. Try syncing server from 'admin123' to the entered password
-          try {
-            const syncRes = await sendAuthRequest('change-password', {
-              username: username,
-              current_password: 'admin123',
-              new_password: password
-            });
-            if (syncRes && syncRes.ok) {
-              const retryRes = await sendAuthRequest('login', { username, password });
-              if (retryRes && retryRes.ok) {
-                const retryData = await retryRes.json();
-                localStorage.setItem('admin_token', retryData.access_token);
-                localStorage.setItem('token', retryData.access_token);
-                localStorage.setItem('offline_admin_pw', password);
-                window.location.href = 'admin-panel.html';
-                return;
-              }
-            }
-          } catch (_) {}
-
-          // 2. Try syncing server from stored offline password (if different)
-          const storedOfflinePw = localStorage.getItem('offline_admin_pw');
-          if (storedOfflinePw && storedOfflinePw !== 'admin123' && storedOfflinePw !== password) {
-            try {
-              const syncRes2 = await sendAuthRequest('change-password', {
-                username: username,
-                current_password: storedOfflinePw,
-                new_password: password
-              });
-              if (syncRes2 && syncRes2.ok) {
-                const retryRes2 = await sendAuthRequest('login', { username, password });
-                if (retryRes2 && retryRes2.ok) {
-                  const retryData2 = await retryRes2.json();
-                  localStorage.setItem('admin_token', retryData2.access_token);
-                  localStorage.setItem('token', retryData2.access_token);
-                  localStorage.setItem('offline_admin_pw', password);
-                  window.location.href = 'admin-panel.html';
-                  return;
-                }
-              }
-            } catch (_) {}
-          }
         }
 
         if (res) {
-          showError("Geçersiz kullanıcı adı veya şifre.");
+          let errorText = "Geçersiz kullanıcı adı veya şifre.";
+          if (res.status === 508) {
+            errorText = "Sunucu Kaynak Limiti Aşıldı (Hata 508: Insufficient Resource). PHP süreçleri kilitlendiği veya yoğunluk oluştuğu için sunucu yanıt veremiyor. Şifreniz yanlış DEĞİLDİR. Lütfen cPanel'den PHP sürümünü değiştirip geri alarak süreçleri sıfırlayın veya 2-3 dakika bekleyin.";
+          } else if (res.status === 503) {
+            errorText = "Sunucu Geçici Olarak Meşgul (Hata 503: Service Unavailable). LiteSpeed PHP süreç limiti doldu. Şifreniz yanlış DEĞİLDİR. Lütfen birkaç dakika bekleyin veya cPanel'den süreçleri sıfırlayın.";
+          } else if (res.status >= 500) {
+            errorText = `Sunucu hatası (${res.status}). Sunucu şu anda isteği işleyemiyor, şifrenizle ilgili bir sorun yoktur.`;
+          } else {
+            try {
+              const data = await res.json();
+              if (data && data.detail) {
+                errorText = data.detail;
+              }
+            } catch (_) {}
+          }
+          showError(errorText);
           btn.textContent = "Giriş Yap";
           btn.disabled = false;
           return;
         }
 
-        // Offline / local file fallback
-        const offlinePw = localStorage.getItem('offline_admin_pw') || 'admin123';
-        if (username === 'admin' && (password === offlinePw || password === 'admin123')) {
-          localStorage.setItem('offline_admin_pw', password);
-          const mockToken = 'offline_token_' + Date.now();
-          localStorage.setItem('admin_token', mockToken);
-          localStorage.setItem('token', mockToken);
-          window.location.href = 'admin-panel.html';
-          return;
+        // Offline fallback only for local file:// testing
+        if (window.location.protocol === 'file:') {
+          if (username === 'admin' && password === 'Serdar1') {
+            const mockToken = 'offline_token_' + Date.now();
+            localStorage.setItem('admin_token', mockToken);
+            localStorage.setItem('token', mockToken);
+            window.location.href = 'admin-panel.html';
+            return;
+          } else {
+            showError("Geçersiz kullanıcı adı veya şifre.");
+          }
         } else {
-          showError("Geçersiz kullanıcı adı veya şifre.");
-          btn.textContent = "Giriş Yap";
-          btn.disabled = false;
+          showError("Sunucuya bağlanılamadı. Lütfen backend_php klasörünü ve sunucu durumunu kontrol edin.");
         }
+        btn.textContent = "Giriş Yap";
+        btn.disabled = false;
       } catch (err) {
         showError("Bağlantı hatası oluştu. Lütfen tekrar deneyin.");
         btn.textContent = "Giriş Yap";
@@ -318,56 +339,47 @@
           new_password: newPassword
         });
 
-        // If server rejected current password, but the server is still on 'admin123'
-        // and the user entered their local offline password as currentPassword:
-        if (res && res.status === 400 && currentPassword !== 'admin123') {
-          try {
-            const fallbackRes = await sendAuthRequest('change-password', {
-              username: username,
-              current_password: 'admin123',
-              new_password: newPassword
-            });
-            if (fallbackRes && fallbackRes.ok) {
-              res = fallbackRes;
-            }
-          } catch (_) {}
-        }
-
         if (res && res.ok) {
-          localStorage.setItem('offline_admin_pw', newPassword);
           showSuccess("Şifreniz başarıyla güncellendi! Yeni şifrenizle giriş yapabilirsiniz.");
           changePwForm.reset();
           changePwForm.style.display = 'none';
           loginForm.style.display = 'block';
+          document.getElementById('username').value = username;
+          document.getElementById('password').value = '';
           return;
         }
 
         if (res) {
           let errorText = "Mevcut şifre hatalı.";
-          try {
-            const data = await res.json();
-            if (data && data.detail) {
-              if (data.detail.includes("Mevcut şifre") || data.detail.toLowerCase().includes("current password")) {
-                errorText = "Mevcut şifre hatalı.";
-              } else {
+          if (res.status === 508) {
+            errorText = "Sunucu Kaynak Limiti Aşıldı (Hata 508). Sunucu meşgul olduğu için işlem yapılamıyor. Şifreniz yanlış DEĞİLDİR.";
+          } else if (res.status === 503) {
+            errorText = "Sunucu Meşgul (Hata 503). LiteSpeed PHP süreç limiti doldu.";
+          } else if (res.status >= 500) {
+            errorText = `Sunucu hatası (${res.status}).`;
+          } else {
+            try {
+              const data = await res.json();
+              if (data && data.detail) {
                 errorText = data.detail;
               }
-            }
-          } catch (_) {}
+            } catch (_) {}
+          }
           showError(errorText);
           return;
         }
 
-        // Offline / local fallback - requires matching current password or admin123
-        const offlinePw = localStorage.getItem('offline_admin_pw') || 'admin123';
-        if (username === 'admin' && (currentPassword === offlinePw || currentPassword === 'admin123')) {
-          localStorage.setItem('offline_admin_pw', newPassword);
-          showSuccess("Şifreniz başarıyla güncellendi! Yeni şifrenizle giriş yapabilirsiniz.");
-          changePwForm.reset();
-          changePwForm.style.display = 'none';
-          loginForm.style.display = 'block';
+        if (window.location.protocol === 'file:') {
+          if (username === 'admin' && currentPassword === 'Serdar1') {
+            showSuccess("Şifreniz başarıyla güncellendi (Offline mod).");
+            changePwForm.reset();
+            changePwForm.style.display = 'none';
+            loginForm.style.display = 'block';
+          } else {
+            showError("Mevcut şifre hatalı.");
+          }
         } else {
-          showError("Mevcut şifre hatalı.");
+          showError("Sunucuya bağlanılamadı. Lütfen sunucu durumunu kontrol edin.");
         }
       } catch (err) {
         showError("Şifre güncellenirken bir hata oluştu.");
@@ -377,5 +389,6 @@
       }
     });
   </script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

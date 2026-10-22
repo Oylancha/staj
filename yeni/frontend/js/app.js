@@ -1,3 +1,11 @@
+// Apply saved theme immediately
+(function() {
+  try {
+    const saved = localStorage.getItem('ikies_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch (_) {}
+})();
+
 /**
  * Base Component class demonstrating Abstraction and Encapsulation
  */
@@ -27,8 +35,23 @@ class Navbar extends Component {
 
   init() {
     if (this.toggleButton && this.navLinks) {
-      this.toggleButton.addEventListener('click', () => {
+      this.toggleButton.addEventListener('click', (e) => {
+        e.stopPropagation();
         this.navLinks.classList.toggle('show');
+      });
+
+      // Close menu when clicking any nav link
+      this.navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          this.navLinks.classList.remove('show');
+        });
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!this.element.contains(e.target)) {
+          this.navLinks.classList.remove('show');
+        }
       });
     }
   }
@@ -43,26 +66,48 @@ class ImageSlider extends Component {
     this.slides = this.element ? this.element.querySelectorAll('.slide') : [];
     this.current = 0;
     this.intervalId = null;
+    window.__heroImageSlider = this;
+  }
+
+  updateSlides() {
+    this.stopSlider();
+    this.slides = this.element ? this.element.querySelectorAll('.slide') : [];
+    this.current = 0;
+    if (this.slides.length > 0) {
+      this.slides.forEach((s, idx) => {
+        if (idx === 0) s.classList.add('active');
+        else s.classList.remove('active');
+      });
+      if (this.slides.length > 1) {
+        this.startSlider();
+      }
+    }
   }
 
   init() {
-    if (this.slides.length > 0) {
+    if (this.slides.length > 1) {
       this.startSlider();
     }
   }
 
   showNextSlide() {
+    if (!this.slides || this.slides.length <= 1) return;
     this.slides[this.current].classList.remove('active');
     this.current = (this.current + 1) % this.slides.length;
     this.slides[this.current].classList.add('active');
   }
 
   startSlider() {
+    if (!this.slides || this.slides.length <= 1) return;
+    if (this.intervalId) clearInterval(this.intervalId);
     this.intervalId = setInterval(() => this.showNextSlide(), 5000);
   }
 
   stopSlider() {
-    if (this.intervalId) clearInterval(this.intervalId);
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 }
 
@@ -316,17 +361,30 @@ const IdbStorage = {
           resolve(null);
           return;
         }
+        // Safety timeout in case Safari blocks/hangs on file:// protocol
+        const timer = setTimeout(() => resolve(null), 350);
         try {
           const req = window.indexedDB.open('ikies_db', 1);
+          req.onblocked = () => {
+            clearTimeout(timer);
+            resolve(null);
+          };
           req.onupgradeneeded = (e) => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains('keyval')) {
               db.createObjectStore('keyval');
             }
           };
-          req.onsuccess = (e) => resolve(e.target.result);
-          req.onerror = () => resolve(null);
+          req.onsuccess = (e) => {
+            clearTimeout(timer);
+            resolve(e.target.result);
+          };
+          req.onerror = () => {
+            clearTimeout(timer);
+            resolve(null);
+          };
         } catch (e) {
+          clearTimeout(timer);
           resolve(null);
         }
       });
@@ -335,14 +393,29 @@ const IdbStorage = {
   },
   async get(key) {
     try {
-      const db = await this.getDb();
+      const db = await Promise.race([
+        this.getDb(),
+        new Promise(resolve => setTimeout(() => resolve(null), 350))
+      ]);
       if (!db) return null;
       return new Promise((resolve) => {
-        const tx = db.transaction('keyval', 'readonly');
-        const store = tx.objectStore('keyval');
-        const req = store.get(key);
-        req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
-        req.onerror = () => resolve(null);
+        const timer = setTimeout(() => resolve(null), 350);
+        try {
+          const tx = db.transaction('keyval', 'readonly');
+          const store = tx.objectStore('keyval');
+          const req = store.get(key);
+          req.onsuccess = () => {
+            clearTimeout(timer);
+            resolve(req.result !== undefined ? req.result : null);
+          };
+          req.onerror = () => {
+            clearTimeout(timer);
+            resolve(null);
+          };
+        } catch (e) {
+          clearTimeout(timer);
+          resolve(null);
+        }
       });
     } catch (e) {
       return null;
@@ -350,14 +423,29 @@ const IdbStorage = {
   },
   async set(key, val) {
     try {
-      const db = await this.getDb();
+      const db = await Promise.race([
+        this.getDb(),
+        new Promise(resolve => setTimeout(() => resolve(null), 350))
+      ]);
       if (!db) return false;
       return new Promise((resolve) => {
-        const tx = db.transaction('keyval', 'readwrite');
-        const store = tx.objectStore('keyval');
-        const req = store.put(val, key);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => resolve(false);
+        const timer = setTimeout(() => resolve(false), 500);
+        try {
+          const tx = db.transaction('keyval', 'readwrite');
+          const store = tx.objectStore('keyval');
+          const req = store.put(val, key);
+          req.onsuccess = () => {
+            clearTimeout(timer);
+            resolve(true);
+          };
+          req.onerror = () => {
+            clearTimeout(timer);
+            resolve(false);
+          };
+        } catch (e) {
+          clearTimeout(timer);
+          resolve(false);
+        }
       });
     } catch (e) {
       return false;
@@ -365,7 +453,10 @@ const IdbStorage = {
   },
   async delete(key) {
     try {
-      const db = await this.getDb();
+      const db = await Promise.race([
+        this.getDb(),
+        new Promise(resolve => setTimeout(() => resolve(null), 350))
+      ]);
       if (!db) return;
       const tx = db.transaction('keyval', 'readwrite');
       tx.objectStore('keyval').delete(key);
@@ -460,6 +551,114 @@ function imageToDataUrl(file, maxDimension = 1200, quality = 0.78) {
 }
 const compressImage = imageToDataUrl;
 
+let __detectedApiPrefix = null;
+
+/**
+ * Helper to query API with candidate fallback URLs to support cPanel Apache configurations
+ */
+async function apiFetch(endpoint, options = {}, timeoutMs = 15000) {
+  // If running locally via file:// protocol, there is no server-side PHP API
+  if (typeof window !== 'undefined' && window.location.protocol === 'file:') {
+    return null;
+  }
+
+  let clean = endpoint.replace(/^\/?api\//, '');
+  const queryParams = [];
+
+  // Parse any existing query parameters from the endpoint
+  if (clean.includes('?')) {
+    const parts = clean.split('?');
+    clean = parts[0];
+    const existingParams = parts.slice(1).join('&');
+    if (existingParams) queryParams.push(existingParams);
+  }
+
+  // Attach auth token as query parameter as well to defeat any header stripping in Apache/PHP-FPM
+  const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
+  if (token) {
+    queryParams.push(`token=${encodeURIComponent(token)}`);
+  }
+
+  const requestedMethod = (options.method || 'GET').toUpperCase();
+  // Tunnel PUT/DELETE through POST with _method parameter to bypass Apache/cPanel verb restrictions
+  let actualMethod = requestedMethod;
+  if (requestedMethod === 'PUT' || requestedMethod === 'DELETE') {
+    actualMethod = 'POST';
+    queryParams.push(`_method=${requestedMethod}`);
+  }
+
+  const queryString = queryParams.length > 0 ? queryParams.join('&') : '';
+
+  // Prepare headers
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
+    if (!headers.has('X-Authorization')) headers.set('X-Authorization', `Bearer ${token}`);
+    if (!headers.has('X-Admin-Token')) headers.set('X-Admin-Token', token);
+  }
+  if (requestedMethod === 'PUT' || requestedMethod === 'DELETE') {
+    headers.set('X-HTTP-Method-Override', requestedMethod);
+  }
+
+  const baseReqOptions = {
+    ...options,
+    method: actualMethod,
+    headers
+  };
+
+  const isFrontendSubdir = typeof window !== 'undefined' && window.location.pathname.includes('/frontend');
+  const candidateTemplates = isFrontendSubdir ? [
+    '../backend_php/api.php?request={clean}',
+    '/backend_php/api.php?request={clean}',
+    'backend_php/api.php?request={clean}',
+    '../api.php?request={clean}',
+    'api.php?request={clean}',
+    '/api/{clean}',
+    'api/{clean}'
+  ] : [
+    'backend_php/api.php?request={clean}',
+    '/backend_php/api.php?request={clean}',
+    '../backend_php/api.php?request={clean}',
+    'api.php?request={clean}',
+    'api/api.php?request={clean}',
+    '/api/{clean}',
+    'api/{clean}'
+  ];
+
+  const orderedTemplates = __detectedApiPrefix 
+    ? [__detectedApiPrefix, ...candidateTemplates.filter(t => t !== __detectedApiPrefix)]
+    : candidateTemplates;
+
+  for (const template of orderedTemplates) {
+    let url;
+    if (template.includes('?')) {
+      url = template.replace('{clean}', clean) + (queryString ? '&' + queryString : '');
+    } else {
+      url = template.replace('{clean}', clean) + (queryString ? '?' + queryString : '');
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      const reqOptions = { ...baseReqOptions, signal: controller.signal };
+      const res = await fetch(url, reqOptions);
+      clearTimeout(timeoutId);
+
+      // If server returned 404 or 405, this candidate path does not exist on this server
+      if (res.status === 404 || res.status === 405) {
+        continue;
+      }
+
+      __detectedApiPrefix = template;
+      return res;
+    } catch (err) {
+      // Continue to next candidate
+    }
+  }
+
+  return null;
+}
+
 /**
  * ProductService manages products seamlessly across API, IndexedDB, and LocalStorage fallback
  */
@@ -506,21 +705,37 @@ class ProductService {
   }
 
   async getAll() {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const res = await fetch('/api/products', { signal: controller.signal });
-      clearTimeout(timeoutId);
-      
-      if (res.ok) {
-        const products = await res.json();
-        if (Array.isArray(products) && products.length > 0) {
-          await this.saveLocalProducts(products);
-          return products;
+    // Only attempt network API / static fetch if not on file:// protocol
+    if (typeof window !== 'undefined' && window.location.protocol !== 'file:') {
+      try {
+        const res = await apiFetch('products', {}, 8000);
+        if (res && res.ok) {
+          const products = await res.json();
+          if (Array.isArray(products) && products.length > 0) {
+            await this.saveLocalProducts(products);
+            return products;
+          }
         }
+      } catch (err) {
+        console.info("Using local product catalog (Backend offline or static mode).");
       }
-    } catch (err) {
-      console.info("Using local product catalog (Backend offline or static mode).");
+
+      // Static fallback to site_data.json
+      try {
+        const staticCandidates = ['data/site_data.json', '/data/site_data.json', '../data/site_data.json'];
+        for (const sUrl of staticCandidates) {
+          try {
+            const sRes = await fetch(sUrl);
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              if (sData && Array.isArray(sData.products) && sData.products.length > 0) {
+                await this.saveLocalProducts(sData.products);
+                return sData.products;
+              }
+            }
+          } catch (_) {}
+        }
+      } catch (_) {}
     }
 
     if (this._cachedProducts && Array.isArray(this._cachedProducts) && this._cachedProducts.length > 0) {
@@ -544,43 +759,53 @@ class ProductService {
   async getById(id) {
     const numId = parseInt(id, 10);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const res = await fetch(`/api/products/${numId}`, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
+      const res = await apiFetch(`products/${numId}`, {}, 3000);
+      if (res && res.ok) {
         return await res.json();
       }
-    } catch (err) {
-      // Fallback
-    }
+    } catch (err) {}
 
     const all = await this.getAll();
     return all.find(p => p.id === numId || parseInt(p.id, 10) === numId) || null;
   }
 
   async create(productData, token = null) {
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch('/api/products', {
+      const res = await apiFetch('products', {
         method: 'POST',
         headers,
         body: JSON.stringify(productData)
-      });
-      if (res.ok) {
+      }, 25000);
+      if (res && res.ok) {
         const created = await res.json();
         const local = await this.getAll();
         local.push(created);
         await this.saveLocalProducts(local);
         return created;
       }
+      if (res && !res.ok) {
+        let errDetail = 'Sunucu ürün ekleme hatası (' + res.status + ')';
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errDetail = errData.detail;
+        } catch (_) {}
+        throw new Error(errDetail);
+      }
+      if (isLive && !res) {
+        throw new Error("Sunucuya bağlanılamadı. API yanıt vermedi. Lütfen backend_php klasörünü ve dosya izinlerini kontrol edin.");
+      }
     } catch (err) {
+      if (isLive) {
+        console.error("Product create failed on live server:", err);
+        throw err;
+      }
       console.info("Creating product in local storage mode.");
     }
 
-    // Offline / Fallback creation
+    // Offline / Fallback creation for file://
     const local = await this.getAll();
     const newId = local.length > 0 ? Math.max(...local.map(p => p.id || 0)) + 1 : 1;
     const newProduct = {
@@ -599,14 +824,30 @@ class ProductService {
 
   async delete(id, token = null) {
     const numId = parseInt(id, 10);
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
     try {
       const headers = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      await fetch(`/api/products/${numId}`, {
+      const res = await apiFetch(`products/${numId}/delete`, {
         method: 'DELETE',
         headers
-      });
+      }, 15000);
+      if (res && !res.ok) {
+        let errDetail = 'Sunucu ürün silme hatası (' + res.status + ')';
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errDetail = errData.detail;
+        } catch (_) {}
+        throw new Error(errDetail);
+      }
+      if (isLive && !res) {
+        throw new Error("Sunucuya bağlanılamadı. Ürün silinemedi.");
+      }
     } catch (err) {
+      if (isLive) {
+        console.error("Product delete failed on live server:", err);
+        throw err;
+      }
       console.info("Deleting product in local storage mode.");
     }
 
@@ -622,27 +863,44 @@ class ProductService {
 
   async update(id, productData, token = null) {
     const numId = parseInt(id, 10);
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`/api/products/${numId}`, {
+      const res = await apiFetch(`products/${numId}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify(productData)
-      });
-      if (res.ok) {
+      }, 20000);
+      if (res && res.ok) {
         const updated = await res.json();
         let local = await this.getAll();
         const idx = local.findIndex(p => p.id === numId || parseInt(p.id, 10) === numId);
         if (idx !== -1) local[idx] = updated;
+        else local.push(updated);
         await this.saveLocalProducts(local);
         return updated;
       }
+      if (res && !res.ok) {
+        let errDetail = 'Sunucu ürün güncelleme hatası (' + res.status + ')';
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errDetail = errData.detail;
+        } catch (_) {}
+        throw new Error(errDetail);
+      }
+      if (isLive && !res) {
+        throw new Error("Sunucuya bağlanılamadı. Ürün güncellenemedi.");
+      }
     } catch (err) {
+      if (isLive) {
+        console.error("Product update failed on live server:", err);
+        throw err;
+      }
       console.info("Updating product in local storage mode.");
     }
 
-    // Offline fallback
+    // Offline fallback for file://
     let local = await this.getAll();
     const idx = local.findIndex(p => p.id === numId || parseInt(p.id, 10) === numId);
     if (idx !== -1) {
@@ -662,17 +920,18 @@ class ProductService {
   async addImages(productId, imageUrls, token = null) {
     const numId = parseInt(productId, 10);
     if (!Array.isArray(imageUrls) || imageUrls.length === 0) return [];
+    const t = token || localStorage.getItem('admin_token') || localStorage.getItem('token');
 
     // 1. Try backend batch endpoint if available
     try {
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`/api/products/${numId}/images/batch`, {
+      if (t) headers['Authorization'] = `Bearer ${t}`;
+      const res = await apiFetch(`products/${numId}/images/batch`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ image_urls: imageUrls })
-      });
-      if (res.ok) {
+      }, 20000);
+      if (res && res.ok) {
         const added = await res.json();
         const all = await this.getAll();
         const p = all.find(item => item.id === numId || parseInt(item.id, 10) === numId);
@@ -684,7 +943,7 @@ class ProductService {
         return added;
       }
     } catch (err) {
-      // Backend batch not available
+      console.warn("Batch addImages failed, attempting sequential:", err);
     }
 
     // 2. Try sequential API add if single endpoint exists
@@ -694,13 +953,13 @@ class ProductService {
       for (let i = 0; i < imageUrls.length; i++) {
         const url = imageUrls[i];
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res = await fetch(`/api/products/${numId}/images`, {
+        if (t) headers['Authorization'] = `Bearer ${t}`;
+        const res = await apiFetch(`products/${numId}/images`, {
           method: 'POST',
           headers,
           body: JSON.stringify({ image_url: url, sort_order: i })
-        });
-        if (res.ok) {
+        }, 15000);
+        if (res && res.ok) {
           const imgObj = await res.json();
           addedImages.push(imgObj);
           apiSuccess = true;
@@ -758,10 +1017,10 @@ class ProductService {
     try {
       const headers = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      await fetch(`/api/products/${numId}/images/${imageId}`, {
+      await apiFetch(`products/${numId}/images/${imageId}/delete`, {
         method: 'DELETE',
         headers
-      });
+      }, 15000);
     } catch (err) {
       console.info("Deleting image in local storage mode.");
     }
@@ -796,16 +1055,16 @@ class ProductService {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/upload', {
+      const res = await apiFetch('upload', {
         method: 'POST',
         body: formData
-      });
-      if (res.ok) {
+      }, 20000);
+      if (res && res.ok) {
         const data = await res.json();
         if (data && data.url) return data.url;
       }
     } catch (err) {
-      // Backend not running / offline mode
+      console.warn("Backend upload failed, converting to compressed data URL:", err);
     }
 
     // Client-side compressed Data URL
@@ -897,21 +1156,39 @@ class ReferenceService {
   }
 
   async getAll() {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const res = await fetch('/api/references', { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        const refs = await res.json();
-        if (Array.isArray(refs) && refs.length > 0) {
-          const normalized = refs.map(r => this.normalizeReference(r));
-          this.saveLocalReferences(normalized);
-          return normalized;
+    // Only attempt network API / static fetch if not on file:// protocol
+    if (typeof window !== 'undefined' && window.location.protocol !== 'file:') {
+      try {
+        const res = await apiFetch('references', {}, 8000);
+        if (res && res.ok) {
+          const refs = await res.json();
+          if (Array.isArray(refs) && refs.length > 0) {
+            const normalized = refs.map(r => this.normalizeReference(r));
+            this.saveLocalReferences(normalized);
+            return normalized;
+          }
         }
+      } catch (err) {
+        console.info("Using local references catalog (Backend offline or static mode).");
       }
-    } catch (err) {
-      console.info("Using local references catalog (Backend offline or static mode).");
+
+      // Static fallback to site_data.json
+      try {
+        const staticCandidates = ['data/site_data.json', '/data/site_data.json', '../data/site_data.json'];
+        for (const sUrl of staticCandidates) {
+          try {
+            const sRes = await fetch(sUrl);
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              if (sData && Array.isArray(sData.references) && sData.references.length > 0) {
+                const normalized = sData.references.map(r => this.normalizeReference(r));
+                this.saveLocalReferences(normalized);
+                return normalized;
+              }
+            }
+          } catch (_) {}
+        }
+      } catch (_) {}
     }
 
     if (this._cachedReferences && Array.isArray(this._cachedReferences) && this._cachedReferences.length > 0) {
@@ -933,11 +1210,8 @@ class ReferenceService {
   async getById(id) {
     const numId = parseInt(id, 10);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const res = await fetch(`/api/references/${numId}`, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) {
+      const res = await apiFetch(`references/${numId}`, {}, 8000);
+      if (res && res.ok) {
         const item = await res.json();
         return this.normalizeReference(item);
       }
@@ -947,6 +1221,7 @@ class ReferenceService {
   }
 
   async create(refData, token = null) {
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
     const payload = { ...refData };
     if (payload.images && Array.isArray(payload.images)) {
       payload.images = payload.images.slice(0, 20);
@@ -955,12 +1230,12 @@ class ReferenceService {
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch('/api/references', {
+      const res = await apiFetch('references', {
         method: 'POST',
         headers,
         body: JSON.stringify(payload)
-      });
-      if (res.ok) {
+      }, 25000);
+      if (res && res.ok) {
         const created = await res.json();
         this.normalizeReference(created);
         const local = this.getLocalReferences();
@@ -968,7 +1243,22 @@ class ReferenceService {
         this.saveLocalReferences(local);
         return created;
       }
+      if (res && !res.ok) {
+        let errDetail = 'Sunucu referans ekleme hatası (' + res.status + ')';
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errDetail = errData.detail;
+        } catch (_) {}
+        throw new Error(errDetail);
+      }
+      if (isLive && !res) {
+        throw new Error("Sunucuya bağlanılamadı. API yanıt vermedi. Lütfen backend_php klasörünü ve dosya izinlerini kontrol edin.");
+      }
     } catch (err) {
+      if (isLive) {
+        console.error("Reference create failed on live server:", err);
+        throw err;
+      }
       console.info("Creating reference in local storage mode.");
     }
 
@@ -996,6 +1286,7 @@ class ReferenceService {
 
   async update(id, refData, token = null) {
     const numId = parseInt(id, 10);
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
     const local = this.getLocalReferences();
     const existing = local.find(r => r.id === numId);
     const existingImages = existing && Array.isArray(existing.images) ? existing.images : [];
@@ -1010,20 +1301,36 @@ class ReferenceService {
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`/api/references/${numId}`, {
+      const res = await apiFetch(`references/${numId}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify(payload)
-      });
-      if (res.ok) {
+      }, 20000);
+      if (res && res.ok) {
         const updated = await res.json();
         this.normalizeReference(updated);
         const idx = local.findIndex(r => r.id === numId);
         if (idx !== -1) local[idx] = updated;
+        else local.push(updated);
         this.saveLocalReferences(local);
         return updated;
       }
+      if (res && !res.ok) {
+        let errDetail = 'Sunucu referans güncelleme hatası (' + res.status + ')';
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errDetail = errData.detail;
+        } catch (_) {}
+        throw new Error(errDetail);
+      }
+      if (isLive && !res) {
+        throw new Error("Sunucuya bağlanılamadı. Referans güncellenemedi.");
+      }
     } catch (err) {
+      if (isLive) {
+        console.error("Reference update failed on live server:", err);
+        throw err;
+      }
       console.info("Updating reference in local storage mode.");
     }
 
@@ -1099,14 +1406,30 @@ class ReferenceService {
 
   async delete(id, token = null) {
     const numId = parseInt(id, 10);
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
     try {
       const headers = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      await fetch(`/api/references/${numId}`, {
+      const res = await apiFetch(`references/${numId}/delete`, {
         method: 'DELETE',
         headers
-      });
+      }, 15000);
+      if (res && !res.ok) {
+        let errDetail = 'Sunucu referans silme hatası (' + res.status + ')';
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errDetail = errData.detail;
+        } catch (_) {}
+        throw new Error(errDetail);
+      }
+      if (isLive && !res) {
+        throw new Error("Sunucuya bağlanılamadı. Referans silinemedi.");
+      }
     } catch (err) {
+      if (isLive) {
+        console.error("Reference delete failed on live server:", err);
+        throw err;
+      }
       console.info("Deleting reference in local storage mode.");
     }
 
@@ -1119,6 +1442,241 @@ class ReferenceService {
 
 // Global ReferenceService instance
 window.ReferenceService = new ReferenceService();
+
+/**
+ * SettingsService manages hero backgrounds, about us text, and contact/maps settings
+ */
+class SettingsService {
+  constructor() {
+    this.storageKey = 'ikies_site_settings';
+    this._cachedSettings = null;
+  }
+
+  getDefaults() {
+    return {
+      hero_backgrounds: [
+        'images/IMG_3723.JPG',
+        'images/IMG_3694.JPG',
+        'images/IMG_2004.JPG'
+      ],
+      hero_title: 'Zorlu Koşullara Meydan Okuyoruz',
+      hero_subtitle: 'TV, Uydu, RX, TX Antenleri ve Özel Sensör Modülleri için Profesyonel De-icing ve Kontrol Sistemleri.',
+      hero_badge: 'Profesyonel De-icing & Sensör Modülleri',
+      about_title: 'Hakkımızda',
+      about_badge: '1994\'ten Günümüze',
+      about_content: '1994 yılından beri elektronik ve otomasyon sektöründe öncü çözümler üreten İkies Elektronik, özellikle zorlu kış şartlarında haberleşmenin kesintisiz devam etmesini sağlayan De-icing (Buz çözme) sistemleri alanında uzmanlaşmıştır.\n\nKendi bünyemizde geliştirdiğimiz akıllı sensör modülleri ve farklı anten tiplerine özel olarak tasarlanan (Termoplastik, Branda, Radom, Ped, Blower) de-icing sistemlerimiz ile müşterilerimize uzun yıllar bakım gerektirmeyen, yüksek verimli ve enerji tasarruflu çözümler sunuyoruz.',
+      contact_title: 'İletişim',
+      contact_badge: 'Bize Ulaşın',
+      contact_description: 'Projeleriniz ve özel teknik talepleriniz için ekibimizle iletişime geçin',
+      contact_address: 'İçerenköy Mh. Necmettin Erbakan Cad, İçerenköy, Ahmet Tarık Sok. No: 35B, 34752 Ataşehir/İstanbul',
+      contact_email: 'info@ikies.net',
+      contact_phone: '+90 216 574 08 26',
+      contact_instagram: 'https://www.instagram.com/ikieselektroniksan?vrfl=aGk4dTF3dnAzaTh1',
+      contact_map_query: 'İçerenköy Mh. Necmettin Erbakan Cad, İçerenköy, Ahmet Tarık Sok. No: 35B, 34752 Ataşehir/İstanbul'
+    };
+  }
+
+  getLocalSettings() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return { ...this.getDefaults(), ...parsed };
+      }
+    } catch (_) {}
+    return this.getDefaults();
+  }
+
+  saveLocalSettings(settings) {
+    const merged = { ...this.getDefaults(), ...settings };
+    this._cachedSettings = merged;
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(merged));
+    } catch (_) {}
+    try {
+      IdbStorage.set(this.storageKey, merged);
+    } catch (_) {}
+    return merged;
+  }
+
+  async getSettings() {
+    if (this._cachedSettings) return this._cachedSettings;
+
+    // Check IndexedDB
+    try {
+      const idbData = await IdbStorage.get(this.storageKey);
+      if (idbData && typeof idbData === 'object' && Object.keys(idbData).length > 0) {
+        const merged = { ...this.getDefaults(), ...idbData };
+        this._cachedSettings = merged;
+        return merged;
+      }
+    } catch (_) {}
+
+    // Check Backend API if live
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
+    if (isLive) {
+      try {
+        const res = await apiFetch('settings', {}, 6000);
+        if (res && res.ok) {
+          const apiData = await res.json();
+          if (apiData && typeof apiData === 'object' && Object.keys(apiData).length > 0) {
+            const merged = { ...this.getDefaults(), ...apiData };
+            this.saveLocalSettings(merged);
+            return merged;
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch settings from API, using local fallback:", err);
+      }
+    }
+
+    const local = this.getLocalSettings();
+    this._cachedSettings = local;
+    return local;
+  }
+
+  async saveSettings(newSettings, token = null) {
+    const merged = { ...this.getLocalSettings(), ...newSettings };
+    this.saveLocalSettings(merged);
+
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
+    if (isLive) {
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await apiFetch('settings', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(merged)
+        }, 15000);
+        if (res && res.ok) {
+          const updated = await res.json();
+          if (updated && typeof updated === 'object') {
+            return this.saveLocalSettings(updated);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to persist settings to API, saved locally:", err);
+      }
+    }
+    return merged;
+  }
+
+  applyToDOM(settings = null) {
+    const s = settings || this._cachedSettings || this.getLocalSettings();
+
+    // 1. Hero background images & slider
+    const slidesContainer = document.getElementById('hero-slides-container') || document.querySelector('.hero');
+    if (slidesContainer && Array.isArray(s.hero_backgrounds) && s.hero_backgrounds.length > 0) {
+      const existingSlides = slidesContainer.querySelectorAll('.slide.hero-bg');
+      existingSlides.forEach(el => el.remove());
+
+      const fragment = document.createDocumentFragment();
+      s.hero_backgrounds.forEach((bg, idx) => {
+        const img = document.createElement('img');
+        img.src = bg;
+        img.className = `slide hero-bg ${idx === 0 ? 'active' : ''}`;
+        img.alt = `Hero Background ${idx + 1}`;
+        fragment.appendChild(img);
+      });
+      slidesContainer.insertBefore(fragment, slidesContainer.firstChild);
+
+      if (window.__heroImageSlider) {
+        window.__heroImageSlider.updateSlides();
+      }
+    }
+
+    // Hero Texts
+    const heroTitle = document.getElementById('hero-title-text');
+    if (heroTitle && s.hero_title) heroTitle.textContent = s.hero_title;
+
+    const heroSubtitle = document.getElementById('hero-subtitle-text');
+    if (heroSubtitle && s.hero_subtitle) heroSubtitle.textContent = s.hero_subtitle;
+
+    const heroBadge = document.getElementById('hero-badge-text');
+    if (heroBadge && s.hero_badge) heroBadge.textContent = s.hero_badge;
+
+    // 2. About us (Hakkımızda)
+    const aboutTitle = document.getElementById('site-about-title');
+    if (aboutTitle && s.about_title) aboutTitle.textContent = s.about_title;
+
+    const aboutBadge = document.getElementById('site-about-badge');
+    if (aboutBadge && s.about_badge) aboutBadge.textContent = s.about_badge;
+
+    const aboutContent = document.getElementById('site-about-content');
+    if (aboutContent && s.about_content) {
+      const paragraphs = s.about_content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+      if (paragraphs.length > 0) {
+        aboutContent.innerHTML = paragraphs.map((p, idx) => `
+          <p style="font-size: 1rem; color: hsl(var(--muted-foreground)); line-height: 1.75; ${idx === paragraphs.length - 1 ? 'margin: 0;' : 'margin-bottom: 1rem;'}">
+            ${p.replace(/\n/g, '<br>')}
+          </p>
+        `).join('');
+      } else {
+        aboutContent.innerHTML = `<p style="font-size: 1rem; color: hsl(var(--muted-foreground)); line-height: 1.75; margin: 0;">${s.about_content.replace(/\n/g, '<br>')}</p>`;
+      }
+    }
+
+    // 3. Contact (İletişim)
+    const contactBadge = document.getElementById('contact-badge');
+    if (contactBadge && s.contact_badge) contactBadge.textContent = s.contact_badge;
+
+    const contactTitle = document.getElementById('contact-title');
+    if (contactTitle && s.contact_title) contactTitle.textContent = s.contact_title;
+
+    const contactDesc = document.getElementById('contact-desc');
+    if (contactDesc && s.contact_description) contactDesc.textContent = s.contact_description;
+
+    const contactAddress = document.getElementById('contact-address-text');
+    if (contactAddress && s.contact_address) contactAddress.textContent = s.contact_address;
+
+    const contactEmail = document.getElementById('contact-email-link');
+    if (contactEmail && s.contact_email) {
+      contactEmail.textContent = s.contact_email;
+      contactEmail.href = `mailto:${s.contact_email}`;
+    }
+
+    const contactMailBtn = document.getElementById('contact-mailto-btn');
+    if (contactMailBtn && s.contact_email) {
+      contactMailBtn.href = `mailto:${s.contact_email}`;
+    }
+
+    const contactPhone = document.getElementById('contact-phone-link');
+    const contactPhoneCard = document.getElementById('contact-phone-card');
+    if (s.contact_phone && s.contact_phone.trim()) {
+      if (contactPhone) {
+        contactPhone.textContent = s.contact_phone;
+        contactPhone.href = `tel:${s.contact_phone.replace(/\s+/g, '')}`;
+      }
+      if (contactPhoneCard) contactPhoneCard.style.display = 'block';
+    } else if (contactPhoneCard) {
+      contactPhoneCard.style.display = 'none';
+    }
+
+    const contactInstaLink = document.getElementById('contact-insta-link');
+    if (contactInstaLink) {
+      contactInstaLink.href = s.contact_instagram || 'https://www.instagram.com/ikieselektroniksan?vrfl=aGk4dTF3dnAzaTh1';
+    }
+
+    // Google Maps Iframe & Link
+    const mapIframe = document.getElementById('contact-map-iframe');
+    const mapExtLink = document.getElementById('contact-map-external-link');
+    const mapQuery = (s.contact_map_query || s.contact_address || '').trim();
+    if (mapQuery) {
+      const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+      const viewUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}`;
+      if (mapIframe && !mapIframe.src.includes(encodeURIComponent(mapQuery))) {
+        mapIframe.src = embedUrl;
+      }
+      if (mapExtLink) {
+        mapExtLink.href = viewUrl;
+      }
+    }
+  }
+}
+
+// Global SettingsService instance
+window.SettingsService = new SettingsService();
 
 /**
  * Robust manual file helper utilities
@@ -1273,16 +1831,79 @@ class PageController {
   }
 }
 
+/**
+ * Theme Manager for Light / Dark Mode switching
+ */
+function initThemeManager() {
+  const applyTheme = (theme) => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('ikies_theme', theme);
+    } catch (_) {}
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
+  };
+
+  const currentTheme = localStorage.getItem('ikies_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+
+  document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    if (btn.dataset.themeBound === 'true') return;
+    btn.dataset.themeBound = 'true';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      applyTheme(current);
+    });
+  });
+}
+
+// Embedded logo data URI for foolproof rendering across all environments
+const EMBEDDED_SITE_LOGO = 'data:image/png;base64,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';
+
+function ensureLogoFallback() {
+  document.querySelectorAll('img.logo-img, img[src*="logo.png"]').forEach((img) => {
+    if (img.complete && img.naturalWidth === 0) {
+      img.src = EMBEDDED_SITE_LOGO;
+    }
+    img.addEventListener('error', function() {
+      this.onerror = null;
+      this.src = EMBEDDED_SITE_LOGO;
+    });
+  });
+}
+
+// Run immediately for fast-loaded DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', ensureLogoFallback);
+} else {
+  ensureLogoFallback();
+}
+
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   const app = new PageController();
   
   app.registerComponent(new Navbar('.navbar'));
-  app.registerComponent(new ImageSlider('.hero-slider'));
+  app.registerComponent(new ImageSlider('.hero-slider, .hero'));
   app.registerComponent(new BackdropAnimation()); // Register the geometric backdrop
   
   app.initAll();
   
+  // Initialize theme toggle
+  initThemeManager();
+
   // Initialize cart badge
   window.cart.updateCartBadge();
+
+  // Apply site settings (hero backgrounds, about us, contact & google map)
+  if (window.SettingsService) {
+    window.SettingsService.applyToDOM();
+    window.SettingsService.getSettings().then(s => {
+      window.SettingsService.applyToDOM(s);
+    });
+  }
+
+  // Run fallback check again after full initialization
+  ensureLogoFallback();
 });
+

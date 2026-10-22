@@ -62,22 +62,22 @@ def create_default_admin():
     try:
         user = db.query(models.AdminUser).filter(models.AdminUser.username == "admin").first()
         if not user:
-            hashed = hash_password("admin123")
+            hashed = hash_password("Serdar1")
             admin = models.AdminUser(username="admin", hashed_password=hashed)
             db.add(admin)
             db.commit()
         else:
             # Check if current hash verifies or is corrupt
-            if not verify_password("admin123", user.hashed_password):
-                # If it doesn't even verify as admin123, check if it's a valid bcrypt hash
+            if not verify_password("Serdar1", user.hashed_password) and not verify_password("admin123", user.hashed_password):
+                # If it doesn't even verify as Serdar1 or admin123, check if it's a valid bcrypt hash
                 try:
                     h = user.hashed_password
                     if h.startswith("$2y$"):
                         h = "$2b$" + h[4:]
                     bcrypt.checkpw(b"test", h.encode("utf-8"))
                 except ValueError:
-                    # Invalid salt or corrupt hash - repair to admin123
-                    user.hashed_password = hash_password("admin123")
+                    # Invalid salt or corrupt hash - repair to Serdar1
+                    user.hashed_password = hash_password("Serdar1")
                     db.commit()
     except Exception as e:
         print("Admin startup check error:", e)
