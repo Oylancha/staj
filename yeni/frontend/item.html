@@ -43,13 +43,17 @@
 
     .item-detail-container {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
       gap: 3.5rem;
       align-items: start;
     }
+    .item-detail-container > * {
+      min-width: 0;
+      max-width: 100%;
+    }
     @media (max-width: 860px) {
       .item-detail-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 2rem;
       }
     }
@@ -60,27 +64,66 @@
       flex-direction: column;
       gap: 0.85rem;
       width: 100%;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .main-image-wrapper {
       position: relative;
       width: 100%;
+      max-width: 100%;
       border-radius: var(--radius-lg);
       overflow: hidden;
       background: hsl(var(--card));
       border: 1px solid hsl(var(--border));
       box-shadow: 0 4px 20px rgba(0,0,0,0.5);
       aspect-ratio: 4 / 3;
+      max-height: 480px;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
     }
 
     .main-gallery-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: opacity 0.15s ease-in-out;
+      cursor: pointer;
+      transition: opacity 0.15s ease-in-out, transform 0.25s ease;
+    }
+
+    .main-image-wrapper:hover .main-gallery-img {
+      transform: scale(1.02);
+    }
+
+    .gallery-zoom-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: hsla(var(--background), 0.85);
+      color: hsl(var(--foreground));
+      border: 1px solid hsl(var(--border));
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      z-index: 3;
+      transition: all var(--transition-speed) ease;
+      opacity: 0.9;
+    }
+
+    .gallery-zoom-badge:hover {
+      opacity: 1;
+      background: hsl(var(--primary));
+      border-color: hsl(var(--primary));
+      color: #fff;
+      transform: scale(1.08);
     }
 
     .gallery-nav-btn {
@@ -102,7 +145,7 @@
       font-size: 1.1rem;
       transition: all var(--transition-speed) ease;
       user-select: none;
-      z-index: 2;
+      z-index: 3;
     }
 
     .gallery-nav-btn:hover {
@@ -127,16 +170,38 @@
       font-weight: 600;
       letter-spacing: -0.01em;
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border: 1px solid hsl(var(--border));
-      z-index: 2;
+      z-index: 3;
+      user-select: none;
     }
 
     .thumbnails-strip {
       display: flex;
       gap: 0.5rem;
       overflow-x: auto;
-      padding: 2px 0 6px 0;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 4px 2px 8px 2px;
       scrollbar-width: thin;
+      scrollbar-color: hsl(var(--primary)) hsla(var(--muted), 0.3);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .thumbnails-strip::-webkit-scrollbar {
+      height: 6px;
+    }
+    .thumbnails-strip::-webkit-scrollbar-track {
+      background: hsla(var(--muted), 0.3);
+      border-radius: 9999px;
+    }
+    .thumbnails-strip::-webkit-scrollbar-thumb {
+      background: hsl(var(--border));
+      border-radius: 9999px;
+    }
+    .thumbnails-strip::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--primary));
     }
 
     .thumb-item {
@@ -167,6 +232,126 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
+    }
+
+    /* ── Photo Lightbox Modal (Same style as reference companies) ── */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.94);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease-out;
+      padding: 1.5rem;
+    }
+
+    .lightbox-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: var(--radius-md);
+      border: 1px solid hsl(var(--border));
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      transition: opacity 0.15s ease-in-out;
+      user-select: none;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: -44px;
+      right: 0;
+      background: hsla(0, 0%, 20%, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      z-index: 2010;
+    }
+
+    .lightbox-close:hover {
+      background: hsl(var(--primary));
+      border-color: hsl(var(--primary));
+      color: #fff;
+    }
+
+    .lightbox-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: hsla(0, 0%, 20%, 0.85);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.3rem;
+      transition: all 0.15s ease;
+      user-select: none;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 2010;
+    }
+
+    .lightbox-nav-btn:hover {
+      background: hsl(var(--primary));
+      border-color: hsl(var(--primary));
+      color: #fff;
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .lightbox-nav-btn.prev {
+      left: -60px;
+    }
+
+    .lightbox-nav-btn.next {
+      right: -60px;
+    }
+
+    @media (max-width: 768px) {
+      .lightbox-nav-btn.prev { left: 8px; }
+      .lightbox-nav-btn.next { right: 8px; }
+      .lightbox-close { top: -40px; right: 0; }
+    }
+
+    .lightbox-counter {
+      margin-top: 0.75rem;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
     }
 
     /* ── Product Info & Actions ── */
@@ -334,6 +519,17 @@
     </div>
   </main>
 
+  <!-- Photo Lightbox Modal (Same as reference companies window) -->
+  <div class="lightbox-overlay" id="photo-lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox(event)" title="Kapat">&times;</button>
+      <button class="lightbox-nav-btn prev" id="lb-prev-btn" onclick="switchLightboxImage(-1, event)" title="Önceki resim (Sol Ok)" aria-label="Önceki resim">&#10094;</button>
+      <img id="lightbox-image" class="lightbox-img" src="" alt="Resim Önizleme">
+      <button class="lightbox-nav-btn next" id="lb-next-btn" onclick="switchLightboxImage(1, event)" title="Sonraki resim (Sağ Ok)" aria-label="Sonraki resim">&#10095;</button>
+      <div class="lightbox-counter" id="lightbox-counter">1 / 1</div>
+    </div>
+  </div>
+
   <footer class="footer">
     <p class="footer-text">© 2026 İkies Elektronik. Tüm Hakları Saklıdır.</p>
   </footer>
@@ -344,7 +540,7 @@
     let productImages = [];
 
     function switchImage(index) {
-      if (productImages.length === 0) return;
+      if (!productImages || productImages.length === 0) return;
       currentImageIndex = (index + productImages.length) % productImages.length;
 
       const mainImg = document.getElementById('main-gallery-img');
@@ -354,7 +550,7 @@
         setTimeout(() => {
           mainImg.src = productImages[currentImageIndex];
           mainImg.style.opacity = '1';
-        }, 100);
+        }, 80);
       }
       if (counter) {
         counter.textContent = `${currentImageIndex + 1} / ${productImages.length}`;
@@ -369,6 +565,65 @@
           thumb.classList.remove('active');
         }
       });
+
+      // Synchronize Lightbox if it is currently open
+      const lb = document.getElementById('photo-lightbox');
+      if (lb && lb.classList.contains('active')) {
+        const lbImg = document.getElementById('lightbox-image');
+        const lbCounter = document.getElementById('lightbox-counter');
+        if (lbImg) {
+          lbImg.style.opacity = '0.35';
+          lbImg.src = productImages[currentImageIndex];
+          setTimeout(() => {
+            lbImg.style.opacity = '1';
+          }, 50);
+        }
+        if (lbCounter) {
+          lbCounter.textContent = `${currentImageIndex + 1} / ${productImages.length}`;
+        }
+      }
+    }
+
+    function openLightbox(index) {
+      if (!productImages || productImages.length === 0) return;
+      if (typeof index === 'number') {
+        switchImage(index);
+      }
+      const lb = document.getElementById('photo-lightbox');
+      const lbImg = document.getElementById('lightbox-image');
+      const lbPrev = document.getElementById('lb-prev-btn');
+      const lbNext = document.getElementById('lb-next-btn');
+      const lbCounter = document.getElementById('lightbox-counter');
+      const total = productImages.length;
+
+      if (lbImg) {
+        lbImg.src = productImages[currentImageIndex];
+      }
+      if (lbCounter) {
+        lbCounter.textContent = `${currentImageIndex + 1} / ${total}`;
+        lbCounter.style.display = total > 1 ? 'block' : 'none';
+      }
+      if (lbPrev) lbPrev.style.display = total > 1 ? 'flex' : 'none';
+      if (lbNext) lbNext.style.display = total > 1 ? 'flex' : 'none';
+
+      if (lb) lb.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function switchLightboxImage(direction, e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      switchImage(currentImageIndex + direction);
+    }
+
+    function closeLightbox(e) {
+      if (e && e.target && (e.target.id === 'lightbox-image' || e.target.closest('.lightbox-nav-btn'))) {
+        return;
+      }
+      const lb = document.getElementById('photo-lightbox');
+      if (lb) lb.classList.remove('active');
+      const lbImg = document.getElementById('lightbox-image');
+      if (lbImg) lbImg.src = '';
+      document.body.style.overflow = '';
     }
 
     async function loadItemDetail() {
@@ -445,10 +700,13 @@
 
           galleryHtml = `
             <div class="gallery-container">
-              <div class="main-image-wrapper">
+              <div class="main-image-wrapper" onclick="openLightbox(currentImageIndex)" title="Resmi büyütmek için tıklayınız">
                 <img id="main-gallery-img" src="${productImages[0]}" alt="${product.name}" class="main-gallery-img" onerror="this.src='images/placeholder.svg'">
-                <button class="gallery-nav-btn prev" onclick="switchImage(currentImageIndex - 1)" title="Önceki resim">&#10094;</button>
-                <button class="gallery-nav-btn next" onclick="switchImage(currentImageIndex + 1)" title="Sonraki resim">&#10095;</button>
+                <button class="gallery-zoom-badge" onclick="event.stopPropagation(); openLightbox(currentImageIndex);" title="Resmi Büyüt (Lightbox)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                </button>
+                <button class="gallery-nav-btn prev" onclick="event.stopPropagation(); switchImage(currentImageIndex - 1);" title="Önceki resim">&#10094;</button>
+                <button class="gallery-nav-btn next" onclick="event.stopPropagation(); switchImage(currentImageIndex + 1);" title="Sonraki resim">&#10095;</button>
                 <div class="gallery-counter" id="gallery-counter">1 / ${productImages.length}</div>
               </div>
               <div class="thumbnails-strip">
@@ -459,8 +717,11 @@
         } else {
           galleryHtml = `
             <div class="gallery-container">
-              <div class="main-image-wrapper">
+              <div class="main-image-wrapper" onclick="openLightbox(0)" title="Resmi büyütmek için tıklayınız">
                 <img id="main-gallery-img" src="${productImages[0]}" alt="${product.name}" class="main-gallery-img" onerror="this.src='images/placeholder.svg'">
+                <button class="gallery-zoom-badge" onclick="event.stopPropagation(); openLightbox(0);" title="Resmi Büyüt (Lightbox)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                </button>
               </div>
             </div>
           `;
@@ -506,6 +767,11 @@
         const wrapper = container.querySelector('.main-image-wrapper');
         if (wrapper && productImages && productImages.length > 1) {
           attachSwipeListener(wrapper, () => switchImage(currentImageIndex + 1), () => switchImage(currentImageIndex - 1));
+        }
+
+        const lbContent = document.querySelector('.lightbox-content');
+        if (lbContent) {
+          attachSwipeListener(lbContent, () => switchLightboxImage(1), () => switchLightboxImage(-1));
         }
 
         const mBtn = document.getElementById('manual-btn');
@@ -556,9 +822,31 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if (productImages && productImages.length > 1) {
-        if (e.key === 'ArrowLeft') switchImage(currentImageIndex - 1);
-        if (e.key === 'ArrowRight') switchImage(currentImageIndex + 1);
+      const lb = document.getElementById('photo-lightbox');
+      const isLbActive = lb && lb.classList.contains('active');
+
+      if (e.key === 'Escape') {
+        if (isLbActive) {
+          closeLightbox();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (productImages && productImages.length > 1) {
+          e.preventDefault();
+          if (isLbActive) {
+            switchLightboxImage(-1, e);
+          } else {
+            switchImage(currentImageIndex - 1);
+          }
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (productImages && productImages.length > 1) {
+          e.preventDefault();
+          if (isLbActive) {
+            switchLightboxImage(1, e);
+          } else {
+            switchImage(currentImageIndex + 1);
+          }
+        }
       }
     });
 
