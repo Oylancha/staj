@@ -22,7 +22,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, HEAD");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Authorization, X-Admin-Token, X-HTTP-Method-Override, X-Method-Override, X-Requested-With, Accept");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS' || $_SERVER['REQUEST_METHOD'] === 'HEAD') {
     http_response_code(200);
     exit;
 }

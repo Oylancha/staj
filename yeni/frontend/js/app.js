@@ -549,7 +549,78 @@ function imageToDataUrl(file, maxDimension = 1200, quality = 0.78) {
     }
   });
 }
+
 const compressImage = imageToDataUrl;
+
+/**
+ * Compresses an image File/Blob on client-side before uploading.
+ * Returns a lightweight compressed File (usually 100-250KB instead of 5-15MB)
+ */
+function compressImageFile(file, maxDimension = 1400, quality = 0.82) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+      resolve(file); // Non-images or SVGs or PDFs are left intact
+      return;
+    }
+    try {
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      const cleanup = () => { try { URL.revokeObjectURL(objectUrl); } catch (_) {} };
+
+      img.onload = () => {
+        try {
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              cleanup();
+              if (blob && blob.size < file.size) {
+                const safeName = (file.name || 'image.jpg').replace(/\.[^.]+$/, '.jpg');
+                const compressedFile = new File([blob], safeName, { type: 'image/jpeg' });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            }, 'image/jpeg', quality);
+            return;
+          }
+        } catch (canvasErr) {
+          console.warn("Client pre-compression error, using original file:", canvasErr);
+        }
+        cleanup();
+        resolve(file);
+      };
+
+      img.onerror = () => {
+        cleanup();
+        resolve(file);
+      };
+
+      img.src = objectUrl;
+    } catch (_) {
+      resolve(file);
+    }
+  });
+}
 
 let __detectedApiPrefix = null;
 
@@ -1051,14 +1122,24 @@ class ProductService {
   async uploadFile(file) {
     if (!file) return null;
 
-    // First try backend upload endpoint if reachable
+    // 1. Client-side pre-compression: resize large camera/phone photos before uploading
+    let fileToUpload = file;
+    if (file.type && file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
+      try {
+        fileToUpload = await compressImageFile(file, 1400, 0.82);
+      } catch (cErr) {
+        console.warn("Client pre-compression skipped:", cErr);
+      }
+    }
+
+    // 2. Upload lightweight compressed file to backend
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload);
       const res = await apiFetch('upload', {
         method: 'POST',
         body: formData
-      }, 20000);
+      }, 25000);
       if (res && res.ok) {
         const data = await res.json();
         if (data && data.url) return data.url;
@@ -1067,7 +1148,7 @@ class ProductService {
       console.warn("Backend upload failed, converting to compressed data URL:", err);
     }
 
-    // Client-side compressed Data URL
+    // Client-side compressed Data URL fallback
     return await imageToDataUrl(file, 1200, 0.78);
   }
 }
