@@ -22,13 +22,15 @@
   <style>
     .admin-container {
       display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 3rem;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 2rem;
       max-width: 1400px;
       margin: 2rem auto;
       padding: 0 5%;
+      box-sizing: border-box;
+      width: 100%;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 1024px) {
       .admin-container {
         grid-template-columns: 1fr;
         gap: 1.5rem;
@@ -42,6 +44,10 @@
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     
     .panel-section h2 {
@@ -138,21 +144,28 @@
 
     /* ── Tree Viewport & Canvas ── */
     .tree-viewport {
-      overflow: auto;
+      overflow-x: auto;
+      overflow-y: auto;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       background: hsl(var(--muted) / 0.4);
-      min-height: 240px;
-      max-height: 60vh;
+      min-height: 280px;
+      max-height: 65vh;
       position: relative;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      -webkit-overflow-scrolling: touch;
     }
 
     .tree-canvas {
       transform-origin: top center;
       transition: transform 0.25s ease;
-      padding: 2rem 1rem;
+      padding: 2.5rem 1.5rem;
       display: inline-block;
       min-width: 100%;
+      width: max-content;
+      box-sizing: border-box;
     }
 
     /* ── Fullscreen Overlay ── */
@@ -181,11 +194,21 @@
     }
 
     /* ── CSS Tree Styling ── */
-    .tree ul {
-      padding-top: 20px; position: relative;
-      transition: all 0.5s;
-      display: flex;
+    .tree {
+      display: inline-flex;
       justify-content: center;
+      min-width: 100%;
+      width: max-content;
+    }
+
+    .tree ul {
+      padding-top: 20px;
+      position: relative;
+      transition: all 0.5s;
+      display: inline-flex;
+      justify-content: center;
+      width: max-content;
+      margin: 0 auto;
     }
     
     .tree li {
@@ -318,6 +341,101 @@
     }
     .node-btn-delete:hover {
       background: var(--accent-red-hover);
+    }
+
+    .node-btn-move {
+      background: hsl(var(--secondary));
+      color: hsl(var(--secondary-foreground));
+      border: 1px solid var(--border-color);
+      font-size: 10px;
+    }
+    .node-btn-move:hover:not(:disabled) {
+      background: var(--accent-red);
+      color: #fff;
+      border-color: var(--accent-red);
+    }
+    .node-btn-move:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .tree-order-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: hsl(var(--muted-foreground));
+      background: hsl(var(--muted));
+      border: 1px solid var(--border-color);
+      padding: 1px 6px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+    .ref-order-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: hsl(var(--muted-foreground));
+      background: hsl(var(--muted));
+      border: 1px solid var(--border-color);
+      padding: 2px 7px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+      margin-right: 8px;
+      align-self: center;
+    }
+
+    .manuals-admin-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .manual-admin-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 1.15rem;
+      background: hsl(var(--card));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .manual-admin-card:hover {
+      border-color: hsl(var(--primary) / 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+    .manual-admin-card-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 0;
+    }
+    .manual-admin-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      object-fit: contain;
+      background: hsl(var(--muted) / 0.5);
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    .manual-admin-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+    .manual-admin-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .manual-admin-file {
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
 
     /* ── Collapse Children ── */
@@ -592,12 +710,16 @@
       margin: 3rem auto;
       padding: 0 5%;
       display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 3rem;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 2rem;
+      box-sizing: border-box;
+      width: 100%;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 1024px) {
       .ref-admin-container {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 3%;
       }
     }
     .ref-admin-list {
@@ -779,6 +901,7 @@
     <div class="nav-right">
       <ul class="nav-links">
         <li><a href="#admin-products-section">Ürünler</a></li>
+        <li><a href="#admin-manuals-section">Kılavuzlar</a></li>
         <li><a href="#admin-references-section">Referanslar</a></li>
         <li><a href="#site-settings-section" style="color: var(--accent-red); font-weight: 600;">Site Görünüm & İçerik</a></li>
         <li><a href="index.html">Siteye Dön</a></li>
@@ -850,7 +973,12 @@
     </div>
 
     <div class="panel-section" id="tree-panel">
-      <h2>Ürün Hiyerarşisi (Branch System)</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+        <h2 style="margin: 0; padding-bottom: 0; border-bottom: none;">Ürün Hiyerarşisi (Branch System)</h2>
+        <button type="button" id="btn-save-products-order" class="btn btn-primary" onclick="saveProductOrdering()" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1.1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+          💾 Sıralamayı Kaydet
+        </button>
+      </div>
 
       <!-- Toolbar -->
       <div class="tree-toolbar">
@@ -882,6 +1010,28 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- ── Manuals Management Section ── -->
+  <div class="site-settings-container animate-fade-in delay-150" id="admin-manuals-section" style="max-width: 1400px; margin: 2rem auto; padding: 0 5%;">
+    <div class="panel-section" style="width: 100%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="margin: 0; padding-bottom: 0; border-bottom: none; display: flex; align-items: center; gap: 0.6rem; color: var(--text-main);">
+            <span style="color: var(--accent-red);">📖</span> Teknik Kılavuzlar Sıralaması
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0.35rem 0 0 0;">
+            Kılavuzlar sayfasında (manuals.html) listelenen PDF ve teknik dokümanların ziyaretçilere gösterilme sırasını buradan düzenleyebilirsiniz.
+          </p>
+        </div>
+        <button type="button" id="btn-save-manuals-order" class="btn btn-primary" onclick="saveManualsOrdering()" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1.1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+          💾 Kılavuz Sıralamasını Kaydet
+        </button>
+      </div>
+      <div id="manuals-admin-list" class="manuals-admin-list">
+        <p style="color: var(--text-muted);">Kılavuzlar yükleniyor...</p>
+      </div>
+    </div>
   </div>
 
   <!-- ── References Management Section (Task 3) ── -->
@@ -918,7 +1068,12 @@
     </div>
 
     <div class="panel-section">
-      <h2>Mevcut Referanslar</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0; padding-bottom: 0; border-bottom: none;">Mevcut Referanslar</h2>
+        <button type="button" id="btn-save-references-order" class="btn btn-primary" onclick="saveReferencesOrdering()" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1.1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+          💾 Referans Sıralamasını Kaydet
+        </button>
+      </div>
       <div class="ref-admin-list" id="ref-admin-list">
         <p style="color: var(--text-muted);">Referanslar yükleniyor...</p>
       </div>
@@ -1375,6 +1530,7 @@
         allProducts = await window.ProductService.getAll();
         updateParentDropdown();
         renderTree();
+        renderManualsList();
       } catch (e) {
         console.error("Product load failed:", e);
       }
@@ -1406,12 +1562,17 @@
       if (children.length === 0) return '';
       
       let html = '<ul>';
-      children.forEach(child => {
+      children.forEach((child, idx) => {
         const childHasChildren = hasChildren(child.id);
+        const isFirst = idx === 0;
+        const isLast = idx === children.length - 1;
         html += `<li data-node-id="${child.id}">
           <div class="tree-node">
+            <span class="tree-order-badge">#${idx + 1}</span>
             <a class="tree-link" href="item.html?id=${child.id}" target="_blank">${child.name}</a>
             <div class="tree-node-actions">
+              <button class="node-btn node-btn-move" onclick="moveProduct(${child.id}, -1, event)" ${isFirst ? 'disabled' : ''} title="Yukarı / Öne Taşı">▲</button>
+              <button class="node-btn node-btn-move" onclick="moveProduct(${child.id}, 1, event)" ${isLast ? 'disabled' : ''} title="Aşağı / Sonraya Taşı">▼</button>
               <button class="node-btn node-btn-edit" onclick="openEditModal(${child.id}, event)" title="Düzenle">✎</button>
               <button class="node-btn node-btn-add" onclick="quickAddChild(${child.id})" title="Alt öğe ekle">+</button>
               ${childHasChildren ? `<button class="node-btn node-btn-toggle" onclick="toggleChildren(${child.id}, this)" title="Alt öğeleri gizle">▼</button>` : ''}
@@ -1423,6 +1584,289 @@
       });
       html += '</ul>';
       return html;
+    }
+
+    async function moveProduct(productId, direction, e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const product = allProducts.find(p => p.id === productId);
+      if (!product) return;
+
+      const parentId = (product.parent_id === null || product.parent_id === undefined || product.parent_id === "" || !allProducts.some(p => p.id === product.parent_id))
+        ? null
+        : product.parent_id;
+
+      const siblings = allProducts.filter(p => {
+        if (parentId === null) {
+          return p.parent_id === null || p.parent_id === undefined || p.parent_id === "" || !allProducts.some(parent => parent.id === p.parent_id);
+        }
+        return p.parent_id === parentId;
+      });
+
+      const currentIndex = siblings.findIndex(p => p.id === productId);
+      if (currentIndex === -1) return;
+      const targetIndex = currentIndex + direction;
+      if (targetIndex < 0 || targetIndex >= siblings.length) return;
+
+      const temp = siblings[currentIndex];
+      siblings[currentIndex] = siblings[targetIndex];
+      siblings[targetIndex] = temp;
+
+      const orderList = siblings.map((p, idx) => ({
+        id: p.id,
+        sort_order: (idx + 1) * 10
+      }));
+
+      orderList.forEach(item => {
+        const found = allProducts.find(p => p.id === item.id);
+        if (found) found.sort_order = item.sort_order;
+      });
+      allProducts.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || a.id - b.id);
+      renderTree();
+
+      const saveBtn = document.getElementById('btn-save-products-order');
+      if (saveBtn) {
+        saveBtn.innerHTML = '💾 Sıralamayı Kaydet (Değişiklik Var *)';
+        saveBtn.style.boxShadow = '0 0 12px rgba(230, 57, 70, 0.4)';
+      }
+
+      // Auto-save in background as well
+      try {
+        await window.ProductService.reorder(orderList, token);
+      } catch (err) {
+        console.warn("Background product reorder notice:", err);
+      }
+    }
+
+    async function saveProductOrdering() {
+      const btn = document.getElementById('btn-save-products-order');
+      const originalText = '💾 Sıralamayı Kaydet';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Kaydediliyor...';
+      }
+
+      try {
+        // Collect all products in flattened hierarchical tree sequence
+        const flattened = [];
+        function traverse(parentId) {
+          const children = allProducts.filter(p => {
+            if (parentId === null) {
+              return p.parent_id === null || p.parent_id === undefined || p.parent_id === "" || !allProducts.some(parent => parent.id === p.parent_id);
+            }
+            return p.parent_id === parentId;
+          });
+          children.forEach(c => {
+            flattened.push(c);
+            traverse(c.id);
+          });
+        }
+        traverse(null);
+
+        // Assign clean global sort_orders: 10, 20, 30...
+        const orderList = flattened.map((p, idx) => ({
+          id: p.id,
+          sort_order: (idx + 1) * 10
+        }));
+
+        orderList.forEach(item => {
+          const found = allProducts.find(p => p.id === item.id);
+          if (found) found.sort_order = item.sort_order;
+        });
+
+        await window.ProductService.reorder(orderList, token);
+        renderTree();
+
+        if (btn) {
+          btn.innerHTML = '✅ Kaydedildi!';
+          btn.style.background = '#10b981';
+          btn.style.borderColor = '#10b981';
+          btn.style.boxShadow = 'none';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 2500);
+        }
+        alert('Ürün sıralaması başarıyla kaydedildi! Sitedeki tüm ürünler yeni sıraya göre görüntülenecektir.');
+      } catch (err) {
+        console.error("Save product ordering failed:", err);
+        if (btn) {
+          btn.innerHTML = '❌ Hata!';
+          btn.style.background = '#ef4444';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.disabled = false;
+          }, 2500);
+        }
+        const msg = (err && err.message) ? err.message : String(err);
+        if (msg.includes('Yetkilendirme') || msg.includes('tekrar giriş') || msg.includes('401')) {
+          if (confirm('Oturum süreniz dolmuş veya güvenlik anahtarı güncellenmiş.\nYeniden giriş yapmak için giriş sayfasına yönlendirilsin mi?')) {
+            window.location.href = 'admin-login.html';
+            return;
+          }
+        }
+        alert('Ürün sıralaması kaydedilemedi: ' + msg);
+      }
+    }
+
+    function renderManualsList() {
+      const container = document.getElementById('manuals-admin-list');
+      if (!container) return;
+
+      const manuals = allProducts
+        .filter(p => p.manual_url && p.manual_url.trim() !== '')
+        .sort((a, b) => {
+          const orderA = a.manual_sort_order !== undefined && a.manual_sort_order !== null ? a.manual_sort_order : (a.sort_order || a.id);
+          const orderB = b.manual_sort_order !== undefined && b.manual_sort_order !== null ? b.manual_sort_order : (b.sort_order || b.id);
+          return orderA - orderB || a.id - b.id;
+        });
+
+      if (manuals.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); padding: 1rem 0;">Henüz kılavuz eklenmiş bir ürün bulunmamaktadır. Ürün eklerken veya düzenlerken PDF/Kılavuz dosyası yükleyebilirsiniz.</p>';
+        return;
+      }
+
+      let html = '';
+      manuals.forEach((m, idx) => {
+        const isFirst = idx === 0;
+        const isLast = idx === manuals.length - 1;
+        const thumbUrl = m.image_url || 'images/placeholder.svg';
+        const docName = (m.manual_url || '').split('/').pop().split('?')[0] || 'Kılavuz';
+
+        html += `
+          <div class="manual-admin-card">
+            <div class="manual-admin-card-left">
+              <span class="ref-order-badge">#${idx + 1}</span>
+              <img src="${thumbUrl}" alt="${m.name}" class="manual-admin-thumb" loading="lazy" decoding="async" onerror="this.src='images/placeholder.svg'">
+              <div class="manual-admin-info">
+                <div class="manual-admin-title">${m.name}</div>
+                <div class="manual-admin-file">
+                  📄 <a href="${m.manual_url}" target="_blank" rel="noopener noreferrer">${docName}</a>
+                </div>
+              </div>
+            </div>
+            <div class="ref-admin-actions">
+              <button class="node-btn node-btn-move" onclick="moveManual(${m.id}, -1)" ${isFirst ? 'disabled' : ''} title="Yukarı Taşı">▲</button>
+              <button class="node-btn node-btn-move" onclick="moveManual(${m.id}, 1)" ${isLast ? 'disabled' : ''} title="Aşağı Taşı">▼</button>
+              <button class="node-btn node-btn-edit" onclick="openEditModal(${m.id}, event)" title="Ürünü / Kılavuzu Düzenle">✎</button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    async function moveManual(productId, direction) {
+      const manuals = allProducts
+        .filter(p => p.manual_url && p.manual_url.trim() !== '')
+        .sort((a, b) => {
+          const orderA = a.manual_sort_order !== undefined && a.manual_sort_order !== null ? a.manual_sort_order : (a.sort_order || a.id);
+          const orderB = b.manual_sort_order !== undefined && b.manual_sort_order !== null ? b.manual_sort_order : (b.sort_order || b.id);
+          return orderA - orderB || a.id - b.id;
+        });
+
+      const currentIndex = manuals.findIndex(p => p.id === productId);
+      if (currentIndex === -1) return;
+      const targetIndex = currentIndex + direction;
+      if (targetIndex < 0 || targetIndex >= manuals.length) return;
+
+      const temp = manuals[currentIndex];
+      manuals[currentIndex] = manuals[targetIndex];
+      manuals[targetIndex] = temp;
+
+      const orderList = manuals.map((m, idx) => ({
+        id: m.id,
+        manual_sort_order: (idx + 1) * 10
+      }));
+
+      orderList.forEach(item => {
+        const found = allProducts.find(p => p.id === item.id);
+        if (found) found.manual_sort_order = item.manual_sort_order;
+      });
+      renderManualsList();
+
+      const saveBtn = document.getElementById('btn-save-manuals-order');
+      if (saveBtn) {
+        saveBtn.innerHTML = '💾 Kılavuz Sıralamasını Kaydet (Değişiklik Var *)';
+        saveBtn.style.boxShadow = '0 0 12px rgba(230, 57, 70, 0.4)';
+      }
+
+      try {
+        await window.ProductService.reorderManuals(orderList, token);
+      } catch (err) {
+        console.warn("Background manuals reorder notice:", err);
+      }
+    }
+
+    async function saveManualsOrdering() {
+      const btn = document.getElementById('btn-save-manuals-order');
+      const originalText = '💾 Kılavuz Sıralamasını Kaydet';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Kaydediliyor...';
+      }
+
+      try {
+        const manuals = allProducts
+          .filter(p => p.manual_url && p.manual_url.trim() !== '')
+          .sort((a, b) => {
+            const orderA = a.manual_sort_order !== undefined && a.manual_sort_order !== null ? a.manual_sort_order : (a.sort_order || a.id);
+            const orderB = b.manual_sort_order !== undefined && b.manual_sort_order !== null ? b.manual_sort_order : (b.sort_order || b.id);
+            return orderA - orderB || a.id - b.id;
+          });
+
+        const orderList = manuals.map((m, idx) => ({
+          id: m.id,
+          manual_sort_order: (idx + 1) * 10
+        }));
+
+        orderList.forEach(item => {
+          const found = allProducts.find(p => p.id === item.id);
+          if (found) found.manual_sort_order = item.manual_sort_order;
+        });
+
+        await window.ProductService.reorderManuals(orderList, token);
+        renderManualsList();
+
+        if (btn) {
+          btn.innerHTML = '✅ Kaydedildi!';
+          btn.style.background = '#10b981';
+          btn.style.borderColor = '#10b981';
+          btn.style.boxShadow = 'none';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 2500);
+        }
+        alert('Kılavuz sıralaması başarıyla kaydedildi! Sitedeki kılavuzlar bu sıraya göre listelenecektir.');
+      } catch (err) {
+        console.error("Save manuals ordering failed:", err);
+        if (btn) {
+          btn.innerHTML = '❌ Hata!';
+          btn.style.background = '#ef4444';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.disabled = false;
+          }, 2500);
+        }
+        const msg = (err && err.message) ? err.message : String(err);
+        if (msg.includes('Yetkilendirme') || msg.includes('tekrar giriş') || msg.includes('401')) {
+          if (confirm('Oturum süreniz dolmuş veya güvenlik anahtarı güncellenmiş.\nYeniden giriş yapmak için giriş sayfasına yönlendirilsin mi?')) {
+            window.location.href = 'admin-login.html';
+            return;
+          }
+        }
+        alert('Kılavuz sıralaması kaydedilemedi: ' + msg);
+      }
     }
 
     async function deleteProduct(id, e) {
@@ -1574,6 +2018,16 @@
         if (p.id === product.parent_id) opt.selected = true;
         editParentSelect.appendChild(opt);
       });
+
+      // If gallery images weren't loaded in the list, fetch them now on demand
+      if (!product.images || product.images.length === 0) {
+        try {
+          const fresh = await window.ProductService.getById(productId);
+          if (fresh && Array.isArray(fresh.images) && fresh.images.length > 0) {
+            product.images = fresh.images;
+          }
+        } catch (_) {}
+      }
 
       // Render existing photos in Edit Gallery (Task 1)
       renderEditImagesGallery(product);
@@ -2010,7 +2464,7 @@
       }
 
       listContainer.innerHTML = '';
-      allReferences.forEach(ref => {
+      allReferences.forEach((ref, idx) => {
         const card = document.createElement('div');
         card.className = 'ref-admin-card';
 
@@ -2049,8 +2503,12 @@
           logoHtml = `<span>${initials}</span>`;
         }
 
+        const isFirst = idx === 0;
+        const isLast = idx === allReferences.length - 1;
+
         card.innerHTML = `
           <div class="ref-admin-card-left">
+            <span class="ref-order-badge">#${idx + 1}</span>
             <div class="ref-admin-logo">${logoHtml}</div>
             <div class="ref-admin-info">
               <div class="ref-admin-title">${ref.company_name}</div>
@@ -2059,12 +2517,106 @@
             </div>
           </div>
           <div class="ref-admin-actions">
+            <button class="node-btn node-btn-move" onclick="moveReference(${ref.id}, -1)" ${isFirst ? 'disabled' : ''} title="Yukarı Taşı">▲</button>
+            <button class="node-btn node-btn-move" onclick="moveReference(${ref.id}, 1)" ${isLast ? 'disabled' : ''} title="Aşağı Taşı">▼</button>
             <button class="node-btn node-btn-edit" onclick="openEditRefModal(${ref.id})" title="Düzenle">✎</button>
             <button class="node-btn node-btn-delete" onclick="deleteReference(${ref.id})" title="Sil">×</button>
           </div>
         `;
         listContainer.appendChild(card);
       });
+    }
+
+    async function moveReference(refId, direction) {
+      if (!allReferences || allReferences.length === 0) return;
+      const currentIndex = allReferences.findIndex(r => r.id === refId);
+      if (currentIndex === -1) return;
+      const targetIndex = currentIndex + direction;
+      if (targetIndex < 0 || targetIndex >= allReferences.length) return;
+
+      const temp = allReferences[currentIndex];
+      allReferences[currentIndex] = allReferences[targetIndex];
+      allReferences[targetIndex] = temp;
+
+      const orderList = allReferences.map((r, idx) => ({
+        id: r.id,
+        sort_order: (idx + 1) * 10
+      }));
+
+      orderList.forEach(item => {
+        const found = allReferences.find(r => r.id === item.id);
+        if (found) found.sort_order = item.sort_order;
+      });
+      renderReferencesList();
+
+      const saveBtn = document.getElementById('btn-save-references-order');
+      if (saveBtn) {
+        saveBtn.innerHTML = '💾 Referans Sıralamasını Kaydet (Değişiklik Var *)';
+        saveBtn.style.boxShadow = '0 0 12px rgba(230, 57, 70, 0.4)';
+      }
+
+      try {
+        await window.ReferenceService.reorder(orderList, token);
+      } catch (err) {
+        console.warn("Background reference reorder notice:", err);
+      }
+    }
+
+    async function saveReferencesOrdering() {
+      const btn = document.getElementById('btn-save-references-order');
+      const originalText = '💾 Referans Sıralamasını Kaydet';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Kaydediliyor...';
+      }
+
+      try {
+        const orderList = allReferences.map((r, idx) => ({
+          id: r.id,
+          sort_order: (idx + 1) * 10
+        }));
+
+        orderList.forEach(item => {
+          const found = allReferences.find(p => p.id === item.id);
+          if (found) found.sort_order = item.sort_order;
+        });
+
+        await window.ReferenceService.reorder(orderList, token);
+        renderReferencesList();
+
+        if (btn) {
+          btn.innerHTML = '✅ Kaydedildi!';
+          btn.style.background = '#10b981';
+          btn.style.borderColor = '#10b981';
+          btn.style.boxShadow = 'none';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 2500);
+        }
+        alert('Referans sıralaması başarıyla kaydedildi! Sitedeki referanslar bu sıraya göre listelenecektir.');
+      } catch (err) {
+        console.error("Save references ordering failed:", err);
+        if (btn) {
+          btn.innerHTML = '❌ Hata!';
+          btn.style.background = '#ef4444';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.disabled = false;
+          }, 2500);
+        }
+        const msg = (err && err.message) ? err.message : String(err);
+        if (msg.includes('Yetkilendirme') || msg.includes('tekrar giriş') || msg.includes('401')) {
+          if (confirm('Oturum süreniz dolmuş veya güvenlik anahtarı güncellenmiş.\nYeniden giriş yapmak için giriş sayfasına yönlendirilsin mi?')) {
+            window.location.href = 'admin-login.html';
+            return;
+          }
+        }
+        alert('Referans sıralaması kaydedilemedi: ' + msg);
+      }
     }
 
     // ── Multi-image Selection Preview for Add Reference ──
@@ -2269,7 +2821,7 @@
 
         const card = document.createElement('div');
         card.className = 'modal-img-card';
-        card.innerHTML = `<img src="${url}" alt="Resim ${idx+1}" onerror="this.parentElement.style.display='none'">`;
+        card.innerHTML = `<img src="${url}" alt="Resim ${idx+1}" loading="lazy" decoding="async" onerror="this.parentElement.style.display='none'">`;
 
         const delBtn = document.createElement('button');
         delBtn.className = 'modal-img-del';

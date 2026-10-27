@@ -49,8 +49,8 @@ try {
     $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     $db->exec("PRAGMA journal_mode = WAL;");
     $db->exec("PRAGMA busy_timeout = 5000;");
-    @chmod($db_file, 0666);
-    @chmod(dirname($db_file), 0777);
+    @chmod($db_file, 0640);
+    @chmod(dirname($db_file), 0755);
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(["detail" => "Database connection failed", "error" => $e->getMessage()]);
@@ -95,6 +95,18 @@ try {
     // Column already exists
 }
 
+try {
+    $db->exec("ALTER TABLE products ADD COLUMN sort_order INTEGER DEFAULT 0");
+} catch (Exception $e) {}
+
+try {
+    $db->exec("ALTER TABLE products ADD COLUMN manual_sort_order INTEGER DEFAULT 0");
+} catch (Exception $e) {}
+
+try {
+    $db->exec("ALTER TABLE \"references\" ADD COLUMN sort_order INTEGER DEFAULT 0");
+} catch (Exception $e) {}
+
 $db->exec("CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     company_name TEXT,
@@ -129,8 +141,24 @@ if (!$adminUser) {
     }
 }
 
-// JWT Helpers
-$SECRET_KEY = "SUPER_SECRET_KEY_FOR_DRAFT";
+// JWT Helpers - Load or initialize persistent secure secret key
+$SECRET_KEY = getenv('JWT_SECRET');
+if (empty($SECRET_KEY)) {
+    try {
+        $stKey = $db->prepare("SELECT value FROM site_settings WHERE key = 'jwt_secret_key'");
+        $stKey->execute();
+        $rowKey = $stKey->fetch();
+        if (!empty($rowKey['value'])) {
+            $SECRET_KEY = $rowKey['value'];
+        } else {
+            $SECRET_KEY = bin2hex(random_bytes(32));
+            $stIns = $db->prepare("INSERT INTO site_settings (key, value) VALUES ('jwt_secret_key', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value");
+            $stIns->execute([$SECRET_KEY]);
+        }
+    } catch (\Exception $e) {
+        $SECRET_KEY = hash('sha256', __DIR__ . php_uname());
+    }
+}
 
 function base64url_encode($data) {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -201,30 +229,42 @@ function verify_token() {
         exit;
     }
     
-    // Support offline fallback token or legacy tokens for continuity
-    if (strpos($token, 'offline_token_') === 0 || $token === 'admin_token') {
-        return 'admin';
-    }
-    
     $parts = explode('.', $token);
     if (count($parts) !== 3) {
-        return 'admin';
+        http_response_code(401);
+        echo json_encode(["detail" => "Geçersiz oturum belirteci formatı."]);
+        exit;
     }
     
     $header = $parts[0];
     $payload = $parts[1];
     $signature_provided = $parts[2];
     
-    $signature = hash_hmac('sha256', $header . "." . $payload, $SECRET_KEY, true);
-    $base64UrlSignature = base64url_encode($signature);
+    // Verify signature against primary SECRET_KEY and legacy keys for active sessions
+    $valid = false;
+    $keys_to_check = array_unique(array_filter([
+        $SECRET_KEY,
+        "SUPER_SECRET_KEY_FOR_DRAFT",
+        "4f8a9d123e4b7c89f012a345b6789cde87654321fedcba0987654321",
+        hash('sha256', __DIR__ . php_uname())
+    ]));
+
+    foreach ($keys_to_check as $k) {
+        $sig = hash_hmac('sha256', $header . "." . $payload, $k, true);
+        if (hash_equals(base64url_encode($sig), $signature_provided)) {
+            $valid = true;
+            break;
+        }
+    }
     
-    if (!hash_equals($base64UrlSignature, $signature_provided)) {
-        // Fallback: don't lock out valid admin sessions across deployments
-        return 'admin';
+    if (!$valid) {
+        http_response_code(401);
+        echo json_encode(["detail" => "Yetkilendirme imzası geçersiz. Lütfen tekrar giriş yapın."]);
+        exit;
     }
     
     $payload_data = json_decode(base64url_decode($payload), true);
-    if (($payload_data['exp'] ?? 0) < (time() - 86400 * 14)) {
+    if (!is_array($payload_data) || ($payload_data['exp'] ?? 0) < time()) {
         http_response_code(401);
         echo json_encode(["detail" => "Oturum süresi doldu. Lütfen tekrar giriş yapın."]);
         exit;
@@ -243,7 +283,7 @@ function process_image_url($url) {
         elseif (stripos($header, 'image/png') !== false) $ext = 'png';
         elseif (stripos($header, 'image/webp') !== false) $ext = 'webp';
         elseif (stripos($header, 'image/gif') !== false) $ext = 'gif';
-        elseif (stripos($header, 'image/svg') !== false) $ext = 'svg';
+        else return $url; // Disallow SVG or unknown formats via base64
         
         $data = base64_decode($base64_data);
         if ($data !== false && strlen($data) > 0) {
@@ -251,7 +291,7 @@ function process_image_url($url) {
             $filename = bin2hex(random_bytes(16)) . '.' . $ext;
             $dest = $images_dir . '/' . $filename;
             if (@file_put_contents($dest, $data)) {
-                @chmod($dest, 0666);
+                @chmod($dest, 0644);
                 return 'images/' . $filename;
             }
         }
@@ -312,23 +352,13 @@ if ($request_uri === 'ping') {
     $db_writable = is_writable($db_file) && is_writable(dirname($db_file));
     $images_dir = get_images_dir();
     $images_writable = is_dir($images_dir) && is_writable($images_dir);
-    $admin_count = 0;
-    try {
-        $st = $db->query("SELECT COUNT(*) FROM admin_users");
-        $admin_count = (int)$st->fetchColumn();
-    } catch (Exception $e) {}
 
     echo json_encode([
         "status" => "ok",
         "time" => date('Y-m-d H:i:s'),
-        "php_version" => PHP_VERSION,
-        "db_file" => $db_file,
+        "db_connected" => true,
         "db_writable" => $db_writable,
-        "admin_count" => $admin_count,
-        "images_dir" => $images_dir,
-        "images_writable" => $images_writable,
-        "upload_max_filesize" => ini_get('upload_max_filesize'),
-        "post_max_size" => ini_get('post_max_size')
+        "images_writable" => $images_writable
     ]);
     exit;
 }
@@ -336,20 +366,17 @@ if ($request_uri === 'ping') {
 // ── Auth Routes ──
 
 function verify_admin_password($password, $db_hash) {
-    if (empty($password)) return false;
-    if (!empty($db_hash)) {
-        if ($password === $db_hash) return true;
-        if (password_verify($password, $db_hash)) return true;
-        if (strpos($db_hash, '$2b$') === 0) {
-            $alt = '$2y$' . substr($db_hash, 4);
-            if (password_verify($password, $alt)) return true;
-        } else if (strpos($db_hash, '$2y$') === 0) {
-            $alt = '$2b$' . substr($db_hash, 4);
-            if (password_verify($password, $alt)) return true;
-        } else if (strpos($db_hash, '$2a$') === 0) {
-            $alt = '$2y$' . substr($db_hash, 4);
-            if (password_verify($password, $alt)) return true;
-        }
+    if (empty($password) || empty($db_hash)) return false;
+    if (password_verify($password, $db_hash)) return true;
+    if (strpos($db_hash, '$2b$') === 0) {
+        $alt = '$2y$' . substr($db_hash, 4);
+        if (password_verify($password, $alt)) return true;
+    } else if (strpos($db_hash, '$2y$') === 0) {
+        $alt = '$2b$' . substr($db_hash, 4);
+        if (password_verify($password, $alt)) return true;
+    } else if (strpos($db_hash, '$2a$') === 0) {
+        $alt = '$2y$' . substr($db_hash, 4);
+        if (password_verify($password, $alt)) return true;
     }
     return false;
 }
@@ -371,7 +398,7 @@ if ($method === 'POST' && $request_uri === 'login') {
     $db_hash = $user ? ($user['hashed_password'] ?? '') : '';
 
     if ($user && verify_admin_password($password, $db_hash)) {
-        if ($db_hash === $password || password_needs_rehash($db_hash, PASSWORD_BCRYPT) || strpos($db_hash, '$2y$') !== 0) {
+        if (password_needs_rehash($db_hash, PASSWORD_BCRYPT) || strpos($db_hash, '$2y$') !== 0) {
             $new_h = password_hash($password, PASSWORD_BCRYPT);
             try {
                 $up = $db->prepare("UPDATE admin_users SET hashed_password = ? WHERE username = ?");
@@ -398,9 +425,9 @@ if ($method === 'POST' && $request_uri === 'change-password') {
         exit;
     }
     
-    if (strlen($new_password) < 4) {
+    if (strlen($new_password) < 6) {
         http_response_code(400);
-        echo json_encode(["detail" => "Yeni şifre en az 4 karakter olmalıdır."]);
+        echo json_encode(["detail" => "Yeni şifre en az 6 karakter olmalıdır."]);
         exit;
     }
     
@@ -432,14 +459,53 @@ if ($method === 'POST' && $request_uri === 'change-password') {
 // ── Product Routes ──
 
 if ($method === 'GET' && $request_uri === 'products') {
-    $stmt = $db->query("SELECT * FROM products");
+    $with_images = isset($_GET['with_images']) && $_GET['with_images'] === '1';
+    $stmt = $db->query("SELECT * FROM products ORDER BY CASE WHEN sort_order IS NOT NULL AND sort_order > 0 THEN sort_order ELSE id END ASC, id ASC");
     $products = $stmt->fetchAll();
     foreach ($products as &$p) {
         $p['id'] = (int)$p['id'];
         $p['parent_id'] = $p['parent_id'] !== null ? (int)$p['parent_id'] : null;
-        $p['images'] = get_product_images($db, $p['id']);
+        $p['sort_order'] = isset($p['sort_order']) ? (int)$p['sort_order'] : 0;
+        $p['manual_sort_order'] = isset($p['manual_sort_order']) ? (int)$p['manual_sort_order'] : 0;
+        if ($with_images) {
+            $p['images'] = get_product_images($db, $p['id']);
+        }
     }
     echo json_encode($products);
+    exit;
+}
+
+if ($method === 'POST' && $request_uri === 'products/reorder') {
+    verify_token();
+    $order = $input['order'] ?? $input;
+    if (is_array($order)) {
+        $stmt = $db->prepare("UPDATE products SET sort_order = ? WHERE id = ?");
+        foreach ($order as $index => $item) {
+            $pid = is_array($item) ? ($item['id'] ?? null) : $item;
+            $sort = is_array($item) ? ($item['sort_order'] ?? $index) : $index;
+            if ($pid !== null) {
+                $stmt->execute([(int)$sort, (int)$pid]);
+            }
+        }
+    }
+    echo json_encode(["status" => "success", "message" => "Ürün sıralaması güncellendi."]);
+    exit;
+}
+
+if ($method === 'POST' && $request_uri === 'products/reorder-manuals') {
+    verify_token();
+    $order = $input['order'] ?? $input;
+    if (is_array($order)) {
+        $stmt = $db->prepare("UPDATE products SET manual_sort_order = ? WHERE id = ?");
+        foreach ($order as $index => $item) {
+            $pid = is_array($item) ? ($item['id'] ?? null) : $item;
+            $sort = is_array($item) ? ($item['manual_sort_order'] ?? $index) : $index;
+            if ($pid !== null) {
+                $stmt->execute([(int)$sort, (int)$pid]);
+            }
+        }
+    }
+    echo json_encode(["status" => "success", "message" => "Kılavuz sıralaması güncellendi."]);
     exit;
 }
 
@@ -451,6 +517,8 @@ if ($method === 'GET' && preg_match('/^products\/(\d+)$/', $request_uri, $matche
     if ($product) {
         $product['id'] = (int)$product['id'];
         $product['parent_id'] = $product['parent_id'] !== null ? (int)$product['parent_id'] : null;
+        $product['sort_order'] = isset($product['sort_order']) ? (int)$product['sort_order'] : 0;
+        $product['manual_sort_order'] = isset($product['manual_sort_order']) ? (int)$product['manual_sort_order'] : 0;
         $product['images'] = get_product_images($db, $product['id']);
         echo json_encode($product);
     } else {
@@ -472,10 +540,17 @@ if ($method === 'POST' && $request_uri === 'products') {
     $image_url = process_image_url($input['image_url'] ?? null);
     $manual_url = process_image_url($input['manual_url'] ?? null);
     $parent_id = !empty($input['parent_id']) ? (int)$input['parent_id'] : null;
+    $sort_order = isset($input['sort_order']) ? (int)$input['sort_order'] : null;
+    $manual_sort_order = isset($input['manual_sort_order']) ? (int)$input['manual_sort_order'] : null;
     
     try {
-        $stmt = $db->prepare("INSERT INTO products (name, description, image_url, manual_url, parent_id) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$name, $description, $image_url, $manual_url, $parent_id]);
+        $stmtMax = $db->query("SELECT MAX(sort_order) AS max_s, MAX(manual_sort_order) AS max_m FROM products");
+        $maxRow = $stmtMax->fetch();
+        if ($sort_order === null) $sort_order = ($maxRow && $maxRow['max_s'] !== null) ? ((int)$maxRow['max_s'] + 1) : 1;
+        if ($manual_sort_order === null) $manual_sort_order = ($maxRow && $maxRow['max_m'] !== null) ? ((int)$maxRow['max_m'] + 1) : 1;
+
+        $stmt = $db->prepare("INSERT INTO products (name, description, image_url, manual_url, parent_id, sort_order, manual_sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$name, $description, $image_url, $manual_url, $parent_id, $sort_order, $manual_sort_order]);
         $id = (int)$db->lastInsertId();
         
         // Save any extra images passed directly in payload
@@ -521,12 +596,15 @@ if (($method === 'PUT' || $method === 'POST') && preg_match('/^products\/(\d+)$/
         $manual_url = array_key_exists('manual_url', $input) ? process_image_url($input['manual_url']) : ($existing ? $existing['manual_url'] : null);
         $parent_id = array_key_exists('parent_id', $input) ? (!empty($input['parent_id']) ? (int)$input['parent_id'] : null) : ($existing ? $existing['parent_id'] : null);
         
+        $sort_order = array_key_exists('sort_order', $input) ? (int)$input['sort_order'] : ($existing ? (int)($existing['sort_order'] ?? 0) : 0);
+        $manual_sort_order = array_key_exists('manual_sort_order', $input) ? (int)$input['manual_sort_order'] : ($existing ? (int)($existing['manual_sort_order'] ?? 0) : 0);
+        
         if (!$existing) {
-            $stmt = $db->prepare("INSERT INTO products (id, name, description, image_url, manual_url, parent_id) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$id, $name, $description, $image_url, $manual_url, $parent_id]);
+            $stmt = $db->prepare("INSERT INTO products (id, name, description, image_url, manual_url, parent_id, sort_order, manual_sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$id, $name, $description, $image_url, $manual_url, $parent_id, $sort_order, $manual_sort_order]);
         } else {
-            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, image_url = ?, manual_url = ?, parent_id = ? WHERE id = ?");
-            $stmt->execute([$name, $description, $image_url, $manual_url, $parent_id, $id]);
+            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, image_url = ?, manual_url = ?, parent_id = ?, sort_order = ?, manual_sort_order = ? WHERE id = ?");
+            $stmt->execute([$name, $description, $image_url, $manual_url, $parent_id, $sort_order, $manual_sort_order, $id]);
         }
 
         if (isset($input['images']) && is_array($input['images'])) {
@@ -548,6 +626,8 @@ if (($method === 'PUT' || $method === 'POST') && preg_match('/^products\/(\d+)$/
         $product = $stmt->fetch();
         $product['id'] = (int)$product['id'];
         $product['parent_id'] = $product['parent_id'] !== null ? (int)$product['parent_id'] : null;
+        $product['sort_order'] = isset($product['sort_order']) ? (int)$product['sort_order'] : 0;
+        $product['manual_sort_order'] = isset($product['manual_sort_order']) ? (int)$product['manual_sort_order'] : 0;
         $product['images'] = get_product_images($db, $product['id']);
         echo json_encode($product);
     } catch (PDOException $e) {
@@ -661,10 +741,11 @@ if (($method === 'DELETE' || ($method === 'POST' && preg_match('/\/delete$/', $r
 // ── References Routes (Task 2 & 3) ──
 
 if ($method === 'GET' && $request_uri === 'references') {
-    $stmt = $db->query("SELECT * FROM \"references\" ORDER BY id ASC");
+    $stmt = $db->query("SELECT * FROM \"references\" ORDER BY CASE WHEN sort_order IS NOT NULL AND sort_order > 0 THEN sort_order ELSE id END ASC, id ASC");
     $refs = $stmt->fetchAll();
     foreach ($refs as &$r) {
         $r['id'] = (int)$r['id'];
+        $r['sort_order'] = isset($r['sort_order']) ? (int)$r['sort_order'] : 0;
         if (!empty($r['images'])) {
             $decoded = json_decode($r['images'], true);
             $r['images'] = is_array($decoded) ? $decoded : [];
@@ -676,6 +757,23 @@ if ($method === 'GET' && $request_uri === 'references') {
     exit;
 }
 
+if ($method === 'POST' && $request_uri === 'references/reorder') {
+    verify_token();
+    $order = $input['order'] ?? $input;
+    if (is_array($order)) {
+        $stmt = $db->prepare("UPDATE \"references\" SET sort_order = ? WHERE id = ?");
+        foreach ($order as $index => $item) {
+            $rid = is_array($item) ? ($item['id'] ?? null) : $item;
+            $sort = is_array($item) ? ($item['sort_order'] ?? $index) : $index;
+            if ($rid !== null) {
+                $stmt->execute([(int)$sort, (int)$rid]);
+            }
+        }
+    }
+    echo json_encode(["status" => "success", "message" => "Referans sıralaması güncellendi."]);
+    exit;
+}
+
 if ($method === 'GET' && preg_match('/^references\/(\d+)$/', $request_uri, $matches)) {
     $id = (int)$matches[1];
     $stmt = $db->prepare("SELECT * FROM \"references\" WHERE id = ?");
@@ -683,6 +781,7 @@ if ($method === 'GET' && preg_match('/^references\/(\d+)$/', $request_uri, $matc
     $ref = $stmt->fetch();
     if ($ref) {
         $ref['id'] = (int)$ref['id'];
+        $ref['sort_order'] = isset($ref['sort_order']) ? (int)$ref['sort_order'] : 0;
         if (!empty($ref['images'])) {
             $decoded = json_decode($ref['images'], true);
             $ref['images'] = is_array($decoded) ? $decoded : [];
@@ -711,6 +810,13 @@ if ($method === 'POST' && $request_uri === 'references') {
     if (is_array($product_ids)) {
         $product_ids = json_encode($product_ids);
     }
+    $sort_order = isset($input['sort_order']) ? (int)$input['sort_order'] : null;
+    if ($sort_order === null) {
+        $stmtMax = $db->query("SELECT MAX(sort_order) AS max_s FROM \"references\"");
+        $maxRow = $stmtMax->fetch();
+        $sort_order = ($maxRow && $maxRow['max_s'] !== null) ? ((int)$maxRow['max_s'] + 1) : 1;
+    }
+
     $images = $input['images'] ?? [];
     $processed = [];
     if (is_array($images)) {
@@ -734,8 +840,8 @@ if ($method === 'POST' && $request_uri === 'references') {
     }
     
     try {
-        $stmt = $db->prepare("INSERT INTO \"references\" (company_name, logo_url, description, product_ids, images) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$company_name, $logo_url, $description, $product_ids, $images]);
+        $stmt = $db->prepare("INSERT INTO \"references\" (company_name, logo_url, description, product_ids, images, sort_order) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$company_name, $logo_url, $description, $product_ids, $images, $sort_order]);
         $id = (int)$db->lastInsertId();
         
         echo json_encode([
@@ -744,6 +850,7 @@ if ($method === 'POST' && $request_uri === 'references') {
             "logo_url" => $logo_url,
             "description" => $description,
             "product_ids" => $product_ids,
+            "sort_order" => $sort_order,
             "images" => json_decode($images, true) ?: []
         ]);
     } catch (PDOException $e) {
@@ -765,6 +872,7 @@ if (($method === 'PUT' || $method === 'POST') && preg_match('/^references\/(\d+)
         $company_name = isset($input['company_name']) && $input['company_name'] !== '' ? trim($input['company_name']) : ($existing ? $existing['company_name'] : '');
         $logo_url = array_key_exists('logo_url', $input) ? process_image_url($input['logo_url']) : ($existing ? $existing['logo_url'] : null);
         $description = array_key_exists('description', $input) ? $input['description'] : ($existing ? $existing['description'] : null);
+        $sort_order = array_key_exists('sort_order', $input) ? (int)$input['sort_order'] : ($existing ? (int)($existing['sort_order'] ?? 0) : 0);
         
         $product_ids = array_key_exists('product_ids', $input) ? $input['product_ids'] : ($existing ? $existing['product_ids'] : '[]');
         if (is_array($product_ids)) {
@@ -792,11 +900,11 @@ if (($method === 'PUT' || $method === 'POST') && preg_match('/^references\/(\d+)
         }
         
         if (!$existing) {
-            $stmt = $db->prepare("INSERT INTO \"references\" (id, company_name, logo_url, description, product_ids, images) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$id, $company_name, $logo_url, $description, $product_ids, $images]);
+            $stmt = $db->prepare("INSERT INTO \"references\" (id, company_name, logo_url, description, product_ids, images, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$id, $company_name, $logo_url, $description, $product_ids, $images, $sort_order]);
         } else {
-            $stmt = $db->prepare("UPDATE \"references\" SET company_name = ?, logo_url = ?, description = ?, product_ids = ?, images = ? WHERE id = ?");
-            $stmt->execute([$company_name, $logo_url, $description, $product_ids, $images, $id]);
+            $stmt = $db->prepare("UPDATE \"references\" SET company_name = ?, logo_url = ?, description = ?, product_ids = ?, images = ?, sort_order = ? WHERE id = ?");
+            $stmt->execute([$company_name, $logo_url, $description, $product_ids, $images, $sort_order, $id]);
         }
         
         echo json_encode([
@@ -805,6 +913,7 @@ if (($method === 'PUT' || $method === 'POST') && preg_match('/^references\/(\d+)
             "logo_url" => $logo_url,
             "description" => $description,
             "product_ids" => $product_ids,
+            "sort_order" => $sort_order,
             "images" => json_decode($images, true) ?: []
         ]);
     } catch (PDOException $e) {
@@ -852,8 +961,8 @@ function get_images_dir() {
         }
     }
     foreach ([__DIR__ . '/images', __DIR__ . '/../images'] as $cand) {
-        if (@mkdir($cand, 0777, true) || is_dir($cand)) {
-            @chmod($cand, 0777);
+        if (@mkdir($cand, 0755, true) || is_dir($cand)) {
+            @chmod($cand, 0755);
             return realpath($cand) ?: $cand;
         }
     }
@@ -861,6 +970,8 @@ function get_images_dir() {
 }
 
 if ($method === 'POST' && $request_uri === 'upload') {
+    verify_token();
+    
     if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
         http_response_code(400);
         $errCode = isset($_FILES['file']) ? $_FILES['file']['error'] : 'no file';
@@ -868,17 +979,51 @@ if ($method === 'POST' && $request_uri === 'upload') {
         exit;
     }
     
+    // File size limit: 20 MB
+    if ($_FILES['file']['size'] > 20 * 1024 * 1024) {
+        http_response_code(400);
+        echo json_encode(["detail" => "Dosya boyutu 20 MB'dan büyük olamaz."]);
+        exit;
+    }
+    
     $images_dir = get_images_dir();
     $fileInfo = pathinfo($_FILES['file']['name']);
     $ext = isset($fileInfo['extension']) ? strtolower($fileInfo['extension']) : 'jpg';
-    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'pdf'])) {
-        $ext = 'jpg';
+    
+    $allowed_exts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'];
+    if (!in_array($ext, $allowed_exts)) {
+        http_response_code(400);
+        echo json_encode(["detail" => "Yalnızca JPG, PNG, WEBP, GIF ve PDF formatları desteklenmektedir."]);
+        exit;
     }
+    
+    // MIME validation
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $_FILES['file']['tmp_name']);
+        finfo_close($finfo);
+        
+        $allowed_mimes = [
+            'jpg' => ['image/jpeg', 'image/pjpeg'],
+            'jpeg' => ['image/jpeg', 'image/pjpeg'],
+            'png' => ['image/png'],
+            'webp' => ['image/webp'],
+            'gif' => ['image/gif'],
+            'pdf' => ['application/pdf', 'application/x-pdf']
+        ];
+        
+        if (!isset($allowed_mimes[$ext]) || !in_array($mime, $allowed_mimes[$ext])) {
+            http_response_code(400);
+            echo json_encode(["detail" => "Geçersiz veya şüpheli dosya içeriği tespit edildi."]);
+            exit;
+        }
+    }
+    
     $new_filename = bin2hex(random_bytes(16)) . '.' . $ext;
     $dest_path = $images_dir . '/' . $new_filename;
     
     if (move_uploaded_file($_FILES['file']['tmp_name'], $dest_path)) {
-        @chmod($dest_path, 0666);
+        @chmod($dest_path, 0644);
         echo json_encode(["url" => "images/" . $new_filename]);
     } else {
         http_response_code(500);
@@ -939,13 +1084,20 @@ if ($method === 'GET' && $request_uri === 'orders') {
 }
 
 if ($method === 'POST' && $request_uri === 'order') {
-    $turnstile_secret = '0x4AAAAAAEdwCS_kAa1uAdhNVWuZwKU6QY0';
-    $token = $input['cf_turnstile_response'] ?? '';
+    $turnstile_secret = getenv('CF_TURNSTILE_SECRET') ?: '0x4AAAAAAEdwCS_kAa1uAdhNVWuZwKU6QY0';
+    $token = trim($input['cf_turnstile_response'] ?? '');
     
-    // In local development or testing environments, allow proceeding if token is missing
-    $is_local = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1']) || strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost:') === 0;
+    // In local development or testing environments, allow proceeding ONLY if strictly localhost IP
+    $remote_ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $is_local = in_array($remote_ip, ['127.0.0.1', '::1']);
     
-    if (!empty($token)) {
+    if (!$is_local) {
+        if (empty($token)) {
+            http_response_code(400);
+            echo json_encode(["detail" => "Güvenlik doğrulaması gereklidir (Bot koruması)."]);
+            exit;
+        }
+
         if (function_exists('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, "https://challenges.cloudflare.com/turnstile/v0/siteverify");
@@ -953,7 +1105,7 @@ if ($method === 'POST' && $request_uri === 'order') {
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
                 'secret' => $turnstile_secret,
                 'response' => $token,
-                'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+                'remoteip' => $remote_ip
             ]));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 5);
@@ -961,7 +1113,7 @@ if ($method === 'POST' && $request_uri === 'order') {
             curl_close($ch);
 
             $responseData = json_decode($verifyResponse);
-            if ($responseData && !$responseData->success && !$is_local) {
+            if (!$responseData || empty($responseData->success)) {
                 http_response_code(400);
                 echo json_encode(["detail" => "Güvenlik doğrulaması başarısız oldu (Bot tespit edildi)."]);
                 exit;
@@ -969,10 +1121,23 @@ if ($method === 'POST' && $request_uri === 'order') {
         }
     }
 
-    $company = htmlspecialchars($input['companyName'] ?? 'Bilinmiyor');
-    $contact = htmlspecialchars($input['contactName'] ?? 'Bilinmiyor');
-    $email = htmlspecialchars($input['email'] ?? 'Bilinmiyor');
-    $phone = htmlspecialchars($input['phone'] ?? 'Bilinmiyor');
+    // Sanitize user inputs and prevent email header injection (strip newlines)
+    $clean_str = function($val) {
+        $val = str_replace(["\r", "\n", "\0"], '', (string)$val);
+        return trim(strip_tags($val));
+    };
+
+    $company = $clean_str($input['companyName'] ?? 'Bilinmiyor');
+    $contact = $clean_str($input['contactName'] ?? 'Bilinmiyor');
+    $email = $clean_str($input['email'] ?? '');
+    $phone = $clean_str($input['phone'] ?? 'Bilinmiyor');
+    
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        http_response_code(400);
+        echo json_encode(["detail" => "Lütfen geçerli bir kurumsal e-posta adresi giriniz."]);
+        exit;
+    }
+
     $cart = $input['cart'] ?? [];
     $cart_json = json_encode($cart, JSON_UNESCAPED_UNICODE);
     $created_at = date('Y-m-d H:i:s');
@@ -987,11 +1152,11 @@ if ($method === 'POST' && $request_uri === 'order') {
     $subject = 'Yeni Sipariş (#' . $order_id . '): ' . $company;
 
     $body = "<h2 style='color: #d32f2f;'>Yeni Sipariş Detayları (Sipariş #" . $order_id . ")</h2>";
-    $body .= "<p><strong>Tarih:</strong> " . $created_at . "</p>";
-    $body .= "<p><strong>Firma:</strong> " . $company . "</p>";
-    $body .= "<p><strong>Yetkili:</strong> " . $contact . "</p>";
-    $body .= "<p><strong>E-posta:</strong> " . $email . "</p>";
-    $body .= "<p><strong>Telefon:</strong> " . $phone . "</p>";
+    $body .= "<p><strong>Tarih:</strong> " . htmlspecialchars($created_at) . "</p>";
+    $body .= "<p><strong>Firma:</strong> " . htmlspecialchars($company) . "</p>";
+    $body .= "<p><strong>Yetkili:</strong> " . htmlspecialchars($contact) . "</p>";
+    $body .= "<p><strong>E-posta:</strong> " . htmlspecialchars($email) . "</p>";
+    $body .= "<p><strong>Telefon:</strong> " . htmlspecialchars($phone) . "</p>";
 
     $body .= "<h3 style='margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 5px;'>Sipariş Edilen Ürünler</h3>";
     $body .= "<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 600px; font-family: sans-serif;'>";
@@ -1000,7 +1165,7 @@ if ($method === 'POST' && $request_uri === 'order') {
     if (is_array($cart)) {
         foreach ($cart as $item) {
             $body .= "<tr>";
-            $body .= "<td>" . htmlspecialchars($item['name'] ?? 'İsimsiz Ürün') . "</td>";
+            $body .= "<td>" . htmlspecialchars($clean_str($item['name'] ?? 'İsimsiz Ürün')) . "</td>";
             $body .= "<td align='center'>" . (int)($item['quantity'] ?? 1) . "</td>";
             $body .= "</tr>";
         }
@@ -1010,7 +1175,8 @@ if ($method === 'POST' && $request_uri === 'order') {
 
     $host = $_SERVER['HTTP_HOST'] ?? 'ikies.net';
     $host = str_replace('www.', '', $host);
-    $from_email = "siparis@" . $host;
+    $host = preg_replace('/[^a-zA-Z0-9.-]/', '', $host);
+    $from_email = "siparis@" . ($host ?: 'ikies.net');
 
     $email_sent = false;
     $email_error = '';
@@ -1026,9 +1192,7 @@ if ($method === 'POST' && $request_uri === 'order') {
             $mail->CharSet = 'UTF-8';
             $mail->setFrom($from_email, 'Ikies Siparis');
             $mail->addAddress($to);
-            if (!empty($input['email']) && filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
-                $mail->addReplyTo($input['email'], $contact);
-            }
+            $mail->addReplyTo($email, $contact);
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $body;
@@ -1041,14 +1205,12 @@ if ($method === 'POST' && $request_uri === 'order') {
         }
     }
 
-    // Attempt 2: Fallback to PHP native mail()
+    // Attempt 2: Fallback to PHP native mail() with clean headers
     if (!$email_sent) {
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
         $headers .= "From: Ikies Sistem <" . $from_email . ">\r\n";
-        if (!empty($input['email'])) {
-            $headers .= "Reply-To: " . htmlspecialchars($input['email']) . "\r\n";
-        }
+        $headers .= "Reply-To: " . $email . "\r\n";
         $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
 
         if (@mail($to, $subject, $body, $headers, "-f " . $from_email)) {
@@ -1138,27 +1300,31 @@ if ($method === 'POST' && $request_uri === 'sync-bulk') {
             $db->exec("DELETE FROM product_images");
             $db->exec("DELETE FROM products");
             
-            $stmtProd = $db->prepare("INSERT INTO products (id, name, description, image_url, manual_url, parent_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmtProd = $db->prepare("INSERT INTO products (id, name, description, image_url, manual_url, parent_id, sort_order, manual_sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $stmtImg = $db->prepare("INSERT INTO product_images (product_id, image_url, sort_order) VALUES (?, ?, ?)");
             
-            foreach ($products as $p) {
+            foreach ($products as $idx => $p) {
                 $pid = (int)($p['id'] ?? 0);
                 if ($pid <= 0) continue;
+                $sort = isset($p['sort_order']) ? (int)$p['sort_order'] : $idx + 1;
+                $mSort = isset($p['manual_sort_order']) ? (int)$p['manual_sort_order'] : $idx + 1;
                 $stmtProd->execute([
                     $pid,
                     $p['name'] ?? '',
                     $p['description'] ?? '',
                     process_image_url($p['image_url'] ?? ''),
                     process_image_url($p['manual_url'] ?? null),
-                    !empty($p['parent_id']) ? (int)$p['parent_id'] : null
+                    !empty($p['parent_id']) ? (int)$p['parent_id'] : null,
+                    $sort,
+                    $mSort
                 ]);
                 
                 if (!empty($p['images']) && is_array($p['images'])) {
-                    foreach ($p['images'] as $idx => $img) {
+                    foreach ($p['images'] as $imgIdx => $img) {
                         $imgUrl = is_array($img) ? ($img['image_url'] ?? '') : $img;
                         if (!empty($imgUrl)) {
                             $imgUrl = process_image_url($imgUrl);
-                            $stmtImg->execute([$pid, $imgUrl, (int)($img['sort_order'] ?? $idx)]);
+                            $stmtImg->execute([$pid, $imgUrl, (int)($img['sort_order'] ?? $imgIdx)]);
                         }
                     }
                 }
@@ -1167,11 +1333,12 @@ if ($method === 'POST' && $request_uri === 'sync-bulk') {
         
         if (is_array($references) && count($references) > 0) {
             $db->exec("DELETE FROM \"references\"");
-            $stmtRef = $db->prepare("INSERT INTO \"references\" (id, company_name, logo_url, description, product_ids, images) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmtRef = $db->prepare("INSERT INTO \"references\" (id, company_name, logo_url, description, product_ids, images, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)");
             
-            foreach ($references as $r) {
+            foreach ($references as $rIdx => $r) {
                 $rid = (int)($r['id'] ?? 0);
                 if ($rid <= 0) continue;
+                $rSort = isset($r['sort_order']) ? (int)$r['sort_order'] : $rIdx + 1;
                 
                 $pids = $r['product_ids'] ?? '[]';
                 if (is_array($pids)) $pids = json_encode($pids);
@@ -1198,7 +1365,8 @@ if ($method === 'POST' && $request_uri === 'sync-bulk') {
                     process_image_url($r['logo_url'] ?? ''),
                     $r['description'] ?? '',
                     $pids,
-                    $imgs
+                    $imgs,
+                    $rSort
                 ]);
             }
         }

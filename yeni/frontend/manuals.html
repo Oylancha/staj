@@ -158,8 +158,14 @@
       try {
         const products = await window.ProductService.getAll();
 
-        // Filter only products that have a manual_url
-        const withManuals = products.filter(p => p.manual_url && p.manual_url.trim() !== '');
+        // Filter only products that have a manual_url and sort by manual_sort_order
+        const withManuals = products
+          .filter(p => p.manual_url && p.manual_url.trim() !== '')
+          .sort((a, b) => {
+            const ordA = a.manual_sort_order !== undefined && a.manual_sort_order !== null ? a.manual_sort_order : (a.sort_order ?? a.id);
+            const ordB = b.manual_sort_order !== undefined && b.manual_sort_order !== null ? b.manual_sort_order : (b.sort_order ?? b.id);
+            return ordA - ordB;
+          });
 
         if (withManuals.length === 0) {
           list.innerHTML = '<p class="manual-empty">Henüz yayınlanmış teknik kılavuz bulunmuyor.</p>';
@@ -168,20 +174,22 @@
 
         list.innerHTML = '';
 
+        const esc = window.escapeHtml || (s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
         withManuals.forEach((p, index) => {
           const item = document.createElement('div');
           item.className = 'manual-item animate-fade-in';
           item.style.animationDelay = `${index * 0.05}s`;
 
+          const safeName = esc(p.name);
           const imgSrc = p.image_url || 'images/placeholder.svg';
           const manualUrl = p.manual_url;
           const fileInfo = window.getManualFileInfo ? window.getManualFileInfo(manualUrl, p.name) : { label: 'PDF', fileName: `${p.name}.pdf` };
 
           item.innerHTML = `
             <div class="manual-main">
-              <img src="${imgSrc}" alt="${p.name}" class="manual-thumb" onerror="this.onerror=null;this.src='images/placeholder.svg';">
+              <img src="${imgSrc}" alt="${safeName}" class="manual-thumb" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='images/placeholder.svg';">
               <div class="manual-info">
-                <p class="manual-name">${p.name}</p>
+                <p class="manual-name">${safeName}</p>
                 <span class="badge badge-outline" style="font-size: 0.75rem;">${fileInfo.label} Dokümanı</span>
               </div>
             </div>

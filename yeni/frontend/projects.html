@@ -77,14 +77,24 @@
           return;
         }
 
+        // Always sort by sort_order (with ID fallback)
+        products.sort((a, b) => {
+          const sa = (a.sort_order !== undefined && a.sort_order !== null) ? Number(a.sort_order) : a.id;
+          const sb = (b.sort_order !== undefined && b.sort_order !== null) ? Number(b.sort_order) : b.id;
+          return sa - sb || a.id - b.id;
+        });
+
         grid.innerHTML = '';
         
         products.forEach(p => {
           const card = document.createElement('div');
           card.className = 'card animate-fade-in';
+          const esc = window.escapeHtml || (s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
+          const safeName = esc(p.name);
           const shortDesc = p.description && p.description.length > 110 
             ? p.description.substring(0, 110).trim() + '...' 
             : (p.description || 'İkies Elektronik profesyonel ürün modülü.');
+          const safeDesc = esc(shortDesc);
           
           const imgSrc = p.image_url || 'images/placeholder.svg';
           const badgeType = p.parent_id 
@@ -93,16 +103,16 @@
 
           card.innerHTML = `
             <div class="card-img-container">
-              <img src="${imgSrc}" alt="${p.name}" class="card-img" onerror="this.onerror=null;this.src='images/placeholder.svg';">
+              <img src="${imgSrc}" alt="${safeName}" class="card-img" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='images/placeholder.svg';">
             </div>
             <div class="card-header">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
-                <h3 class="card-title">${p.name}</h3>
+                <h3 class="card-title">${safeName}</h3>
                 ${badgeType}
               </div>
             </div>
             <div class="card-content">
-              <p class="card-desc">${shortDesc}</p>
+              <p class="card-desc">${safeDesc}</p>
             </div>
             <div class="card-footer">
               <a href="item.html?id=${p.id}" class="btn btn-outline" style="width: 100%;">

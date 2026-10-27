@@ -21,6 +21,8 @@ class ProductBase(BaseModel):
     image_url: Optional[str] = None
     manual_url: Optional[str] = None
     parent_id: Optional[int] = None
+    sort_order: Optional[int] = 0
+    manual_sort_order: Optional[int] = 0
 
 class ProductCreate(ProductBase):
     pass
@@ -38,6 +40,7 @@ class ReferenceBase(BaseModel):
     description: Optional[str] = None
     product_ids: Optional[str] = "[]"
     images: Optional[str] = "[]"
+    sort_order: Optional[int] = 0
 
 class ReferenceCreate(ReferenceBase):
     pass

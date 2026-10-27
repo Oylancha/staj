@@ -536,6 +536,7 @@
 
   <script src="js/app.js?v=8"></script>
   <script>
+    const esc = window.escapeHtml || (s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
     let currentImageIndex = 0;
     let productImages = [];
 
@@ -688,20 +689,22 @@
           `;
         }
 
+        const safeName = esc(product.name);
+        const safeDesc = esc(product.description);
         const isMulti = productImages.length > 1;
         let galleryHtml = '';
 
         if (isMulti) {
           const thumbsHtml = productImages.map((img, idx) => `
             <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="switchImage(${idx})">
-              <img src="${img}" alt="${product.name} thumbnail ${idx + 1}" class="thumb-img" onerror="this.src='images/placeholder.svg'">
+              <img src="${img}" alt="${safeName} thumbnail ${idx + 1}" class="thumb-img" loading="lazy" decoding="async" onerror="this.src='images/placeholder.svg'">
             </div>
           `).join('');
 
           galleryHtml = `
             <div class="gallery-container">
               <div class="main-image-wrapper" onclick="openLightbox(currentImageIndex)" title="Resmi büyütmek için tıklayınız">
-                <img id="main-gallery-img" src="${productImages[0]}" alt="${product.name}" class="main-gallery-img" onerror="this.src='images/placeholder.svg'">
+                <img id="main-gallery-img" src="${productImages[0]}" alt="${safeName}" class="main-gallery-img" onerror="this.src='images/placeholder.svg'">
                 <button class="gallery-zoom-badge" onclick="event.stopPropagation(); openLightbox(currentImageIndex);" title="Resmi Büyüt (Lightbox)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
                 </button>
@@ -718,7 +721,7 @@
           galleryHtml = `
             <div class="gallery-container">
               <div class="main-image-wrapper" onclick="openLightbox(0)" title="Resmi büyütmek için tıklayınız">
-                <img id="main-gallery-img" src="${productImages[0]}" alt="${product.name}" class="main-gallery-img" onerror="this.src='images/placeholder.svg'">
+                <img id="main-gallery-img" src="${productImages[0]}" alt="${safeName}" class="main-gallery-img" onerror="this.src='images/placeholder.svg'">
                 <button class="gallery-zoom-badge" onclick="event.stopPropagation(); openLightbox(0);" title="Resmi Büyüt (Lightbox)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
                 </button>
@@ -738,8 +741,8 @@
               ${badgeType}
               <span class="badge badge-secondary">Endüstriyel Kalite</span>
             </div>
-            <h1 class="item-title tracking-tight">${product.name}</h1>
-            <p class="item-desc">${product.description}</p>
+            <h1 class="item-title tracking-tight">${safeName}</h1>
+            <p class="item-desc">${safeDesc}</p>
             
             <div class="purchase-panel">
               <div style="font-size: 0.8125rem; font-weight: 500; color: hsl(var(--muted-foreground)); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
@@ -748,7 +751,7 @@
               <div class="item-actions">
                 <div class="qty-action-row">
                   <input type="number" id="qty-input" class="qty-input" value="1" min="1" aria-label="Miktar">
-                  <button class="btn btn-primary btn-add-cart" style="height: 2.5rem;" onclick="window.cart.addItem('${product.name.replace(/'/g, "\\'")}', document.getElementById('qty-input').value)">
+                  <button class="btn btn-primary btn-add-cart" id="btn-add-cart-detail" style="height: 2.5rem;">
                     Sepete Ekle
                   </button>
                 </div>
@@ -763,6 +766,13 @@
             </div>
           </div>
         `;
+
+        const addBtn = document.getElementById('btn-add-cart-detail');
+        if (addBtn) {
+          addBtn.onclick = () => {
+            window.cart.addItem(product.name, document.getElementById('qty-input').value);
+          };
+        }
 
         const wrapper = container.querySelector('.main-image-wrapper');
         if (wrapper && productImages && productImages.length > 1) {

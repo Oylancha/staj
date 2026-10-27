@@ -1,5 +1,7 @@
 import os
 
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 items = [
     ('sensor-5.html', 'Sensör 5'),
     ('sensor-d.html', 'Sensör D'),
@@ -12,8 +14,10 @@ items = [
 ]
 
 for file, name in items:
-    path = f'/Users/islam/Codes/staj/yeni/items/{file}'
-    with open(path, 'r') as f:
+    path = os.path.join(base_dir, 'items', file)
+    if not os.path.exists(path):
+        continue
+    with open(path, 'r', encoding='utf-8') as f:
         content = f.read()
     
     # Replace navbar
@@ -37,14 +41,18 @@ for file, name in items:
     if '<script src="../js/app.js"></script>' not in content:
         content = content.replace('</body>', '  <script src="../js/app.js"></script>\n</body>')
     
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(content)
 
 # Update main pages
 mains = ['index.html', 'about.html', 'projects.html', 'references.html', 'contact.html']
 for m in mains:
-    path = f'/Users/islam/Codes/staj/yeni/{m}'
-    with open(path, 'r') as f:
+    path = os.path.join(base_dir, 'frontend', m)
+    if not os.path.exists(path):
+        path = os.path.join(base_dir, m)
+    if not os.path.exists(path):
+        continue
+    with open(path, 'r', encoding='utf-8') as f:
         content = f.read()
     content = content.replace(
         '<li><a href="contact.html" style="color: var(--accent-red);">İletişim</a></li>\n    </ul>',
@@ -54,7 +62,7 @@ for m in mains:
         '<li><a href="contact.html">İletişim</a></li>\n    </ul>',
         '<li><a href="contact.html">İletişim</a></li>\n      <li><a href="cart.html" class="cart-nav-link">Sepet <span id="cart-badge" style="display:none;">0</span></a></li>\n    </ul>'
     )
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(content)
 
 print("Updates complete.")

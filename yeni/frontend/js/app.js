@@ -6,6 +6,17 @@
   } catch (_) {}
 })();
 
+// Global HTML Escaper to prevent XSS
+window.escapeHtml = function(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 /**
  * Base Component class demonstrating Abstraction and Encapsulation
  */
@@ -644,11 +655,8 @@ async function apiFetch(endpoint, options = {}, timeoutMs = 15000) {
     if (existingParams) queryParams.push(existingParams);
   }
 
-  // Attach auth token as query parameter as well to defeat any header stripping in Apache/PHP-FPM
+  // Retrieve auth token for HTTP headers
   const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
-  if (token) {
-    queryParams.push(`token=${encodeURIComponent(token)}`);
-  }
 
   const requestedMethod = (options.method || 'GET').toUpperCase();
   // Tunnel PUT/DELETE through POST with _method parameter to bypass Apache/cPanel verb restrictions
@@ -783,6 +791,7 @@ class ProductService {
         if (res && res.ok) {
           const products = await res.json();
           if (Array.isArray(products) && products.length > 0) {
+            products.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
             await this.saveLocalProducts(products);
             return products;
           }
@@ -800,6 +809,7 @@ class ProductService {
             if (sRes.ok) {
               const sData = await sRes.json();
               if (sData && Array.isArray(sData.products) && sData.products.length > 0) {
+                sData.products.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
                 await this.saveLocalProducts(sData.products);
                 return sData.products;
               }
@@ -810,6 +820,7 @@ class ProductService {
     }
 
     if (this._cachedProducts && Array.isArray(this._cachedProducts) && this._cachedProducts.length > 0) {
+      this._cachedProducts.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
       return this._cachedProducts;
     }
 
@@ -817,6 +828,7 @@ class ProductService {
     try {
       const idbData = await IdbStorage.get(this.storageKey);
       if (Array.isArray(idbData) && idbData.length > 0) {
+        idbData.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
         this._cachedProducts = idbData;
         return idbData;
       }
@@ -824,7 +836,82 @@ class ProductService {
       console.warn("Could not read from IndexedDB:", e);
     }
 
-    return this.getLocalProducts();
+    const localList = this.getLocalProducts();
+    localList.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
+    return localList;
+  }
+
+  async reorder(orderList, token = null) {
+    const t = token || localStorage.getItem('admin_token') || localStorage.getItem('token');
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
+    if (isLive) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (t) headers['Authorization'] = `Bearer ${t}`;
+      const queryToken = t ? `?token=${encodeURIComponent(t)}` : '';
+      const res = await apiFetch(`products/reorder${queryToken}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ order: orderList, token: t })
+      }, 15000);
+      if (res && !res.ok) {
+        let errMsg = `Sunucu sıralama hatası (${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errMsg = errData.detail;
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+    }
+
+    // Update local order
+    const local = await this.getAll();
+    orderList.forEach((item, index) => {
+      const pid = typeof item === 'object' && item !== null ? item.id : item;
+      const sort = typeof item === 'object' && item !== null && item.sort_order !== undefined ? item.sort_order : index;
+      const found = local.find(p => p.id === pid || parseInt(p.id, 10) === parseInt(pid, 10));
+      if (found) {
+        found.sort_order = sort;
+      }
+    });
+    local.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
+    await this.saveLocalProducts(local);
+    return local;
+  }
+
+  async reorderManuals(orderList, token = null) {
+    const t = token || localStorage.getItem('admin_token') || localStorage.getItem('token');
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
+    if (isLive) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (t) headers['Authorization'] = `Bearer ${t}`;
+      const queryToken = t ? `?token=${encodeURIComponent(t)}` : '';
+      const res = await apiFetch(`products/reorder-manuals${queryToken}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ order: orderList, token: t })
+      }, 15000);
+      if (res && !res.ok) {
+        let errMsg = `Sunucu kılavuz sıralama hatası (${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errMsg = errData.detail;
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+    }
+
+    // Update local manual_sort_order
+    const local = await this.getAll();
+    orderList.forEach((item, index) => {
+      const pid = typeof item === 'object' && item !== null ? item.id : item;
+      const sort = typeof item === 'object' && item !== null && item.manual_sort_order !== undefined ? item.manual_sort_order : index;
+      const found = local.find(p => p.id === pid || parseInt(p.id, 10) === parseInt(pid, 10));
+      if (found) {
+        found.manual_sort_order = sort;
+      }
+    });
+    await this.saveLocalProducts(local);
+    return local;
   }
 
   async getById(id) {
@@ -1190,6 +1277,7 @@ class ReferenceService {
 
   normalizeReference(r) {
     if (!r) return r;
+    r.sort_order = typeof r.sort_order === 'number' ? r.sort_order : (parseInt(r.sort_order, 10) || r.id || 0);
     if (typeof r.images === 'string') {
       try {
         r.images = JSON.parse(r.images);
@@ -1245,6 +1333,7 @@ class ReferenceService {
           const refs = await res.json();
           if (Array.isArray(refs) && refs.length > 0) {
             const normalized = refs.map(r => this.normalizeReference(r));
+            normalized.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
             this.saveLocalReferences(normalized);
             return normalized;
           }
@@ -1263,6 +1352,7 @@ class ReferenceService {
               const sData = await sRes.json();
               if (sData && Array.isArray(sData.references) && sData.references.length > 0) {
                 const normalized = sData.references.map(r => this.normalizeReference(r));
+                normalized.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
                 this.saveLocalReferences(normalized);
                 return normalized;
               }
@@ -1273,6 +1363,7 @@ class ReferenceService {
     }
 
     if (this._cachedReferences && Array.isArray(this._cachedReferences) && this._cachedReferences.length > 0) {
+      this._cachedReferences.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
       return this._cachedReferences.map(r => this.normalizeReference(r));
     }
 
@@ -1280,12 +1371,52 @@ class ReferenceService {
       const idbData = await IdbStorage.get(this.storageKey);
       if (Array.isArray(idbData) && idbData.length > 0) {
         const normalized = idbData.map(r => this.normalizeReference(r));
+        normalized.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
         this._cachedReferences = normalized;
         return normalized;
       }
     } catch (e) {}
 
-    return this.getLocalReferences();
+    const localRefs = this.getLocalReferences();
+    localRefs.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
+    return localRefs;
+  }
+
+  async reorder(orderList, token = null) {
+    const t = token || localStorage.getItem('admin_token') || localStorage.getItem('token');
+    const isLive = typeof window !== 'undefined' && window.location.protocol !== 'file:';
+    if (isLive) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (t) headers['Authorization'] = `Bearer ${t}`;
+      const queryToken = t ? `?token=${encodeURIComponent(t)}` : '';
+      const res = await apiFetch(`references/reorder${queryToken}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ order: orderList, token: t })
+      }, 15000);
+      if (res && !res.ok) {
+        let errMsg = `Sunucu referans sıralama hatası (${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) errMsg = errData.detail;
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+    }
+
+    // Update local order
+    const local = await this.getAll();
+    orderList.forEach((item, index) => {
+      const rid = typeof item === 'object' && item !== null ? item.id : item;
+      const sort = typeof item === 'object' && item !== null && item.sort_order !== undefined ? item.sort_order : index;
+      const found = local.find(r => r.id === rid || parseInt(r.id, 10) === parseInt(rid, 10));
+      if (found) {
+        found.sort_order = sort;
+      }
+    });
+    local.sort((a, b) => ((a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : a.id) - ((b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : b.id));
+    this.saveLocalReferences(local);
+    return local;
   }
 
   async getById(id) {
@@ -1686,15 +1817,16 @@ class SettingsService {
 
     const aboutContent = document.getElementById('site-about-content');
     if (aboutContent && s.about_content) {
+      const esc = window.escapeHtml || (str => String(str).replace(/[&<>"']/g, ''));
       const paragraphs = s.about_content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
       if (paragraphs.length > 0) {
         aboutContent.innerHTML = paragraphs.map((p, idx) => `
           <p style="font-size: 1rem; color: hsl(var(--muted-foreground)); line-height: 1.75; ${idx === paragraphs.length - 1 ? 'margin: 0;' : 'margin-bottom: 1rem;'}">
-            ${p.replace(/\n/g, '<br>')}
+            ${esc(p).replace(/\n/g, '<br>')}
           </p>
         `).join('');
       } else {
-        aboutContent.innerHTML = `<p style="font-size: 1rem; color: hsl(var(--muted-foreground)); line-height: 1.75; margin: 0;">${s.about_content.replace(/\n/g, '<br>')}</p>`;
+        aboutContent.innerHTML = `<p style="font-size: 1rem; color: hsl(var(--muted-foreground)); line-height: 1.75; margin: 0;">${esc(s.about_content).replace(/\n/g, '<br>')}</p>`;
       }
     }
 

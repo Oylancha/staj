@@ -16,6 +16,8 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     manual_url = Column(String, nullable=True)
     parent_id = Column(Integer, ForeignKey("products.id"), nullable=True)
+    sort_order = Column(Integer, default=0)
+    manual_sort_order = Column(Integer, default=0)
     
     # Allows fetching children
     children = relationship("Product", backref="parent", remote_side=[id])
@@ -38,3 +40,4 @@ class Reference(Base):
     description = Column(String, nullable=True)
     product_ids = Column(String, nullable=True)  # JSON string e.g. "[8, 10]"
     images = Column(String, nullable=True, default="[]")
+    sort_order = Column(Integer, default=0)

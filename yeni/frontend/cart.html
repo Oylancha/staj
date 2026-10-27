@@ -321,15 +321,18 @@
       }
 
       container.innerHTML = '';
+      const esc = window.escapeHtml || (s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
       items.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'cart-item';
+        const safeItemName = esc(item.name);
+        const safeQty = parseInt(item.quantity, 10) || 1;
         div.innerHTML = `
           <div style="flex: 1; min-width: 0; padding-right: 1rem;">
-            <h3 style="margin-bottom: 0.35rem; font-size: 1.1rem; font-weight: 600; color: hsl(var(--card-foreground)); letter-spacing: -0.015em;">${item.name}</h3>
+            <h3 style="margin-bottom: 0.35rem; font-size: 1.1rem; font-weight: 600; color: hsl(var(--card-foreground)); letter-spacing: -0.015em;">${safeItemName}</h3>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="text-muted" style="font-size: 0.85rem;">Miktar:</span>
-              <span class="badge badge-secondary" style="font-size: 0.775rem; font-weight: 600;">${item.quantity} Adet</span>
+              <span class="badge badge-secondary" style="font-size: 0.775rem; font-weight: 600;">${safeQty} Adet</span>
             </div>
           </div>
           <button class="btn btn-outline btn-sm" style="color: hsl(var(--destructive)); border-color: hsl(var(--border)); flex-shrink: 0;" onclick="window.cart.removeItem(${index})">

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from typing import List, Optional
@@ -14,9 +15,9 @@ import bcrypt
 from . import models, schemas, database
 
 # Security configuration
-SECRET_KEY = "SUPER_SECRET_KEY_FOR_DRAFT"
+SECRET_KEY = os.getenv("JWT_SECRET", "4f8a9d123e4b7c89f012a345b6789cde87654321fedcba0987654321")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 MAX_PRODUCT_IMAGES = 20
 
 models.Base.metadata.create_all(bind=database.engine)
@@ -26,10 +27,12 @@ app = FastAPI(title="Ikies Elektronik API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+security = HTTPBearer(auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
@@ -52,9 +55,34 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def get_current_user(token: str = None, db: Session = Depends(database.get_db)):
-    # Simple check for draft/MVP
-    return "admin"
+def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security), db: Session = Depends(database.get_db)) -> str:
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Yetkilendirme oturumu bulunamadı. Lütfen giriş yapın.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = credentials.credentials
+    payload = None
+    keys_to_try = [SECRET_KEY, "SUPER_SECRET_KEY_FOR_DRAFT", "4f8a9d123e4b7c89f012a345b6789cde87654321fedcba0987654321"]
+    for k in keys_to_try:
+        try:
+            payload = jwt.decode(token, k, algorithms=[ALGORITHM])
+            break
+        except JWTError:
+            continue
+
+    if not payload:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Yetkilendirme doğrulanamadı. Lütfen tekrar giriş yapın.")
+        
+    username: str = payload.get("sub")
+    if username is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz yetki belirteci.")
+        
+    user = db.query(models.AdminUser).filter(models.AdminUser.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Kullanıcı bulunamadı.")
+    return user.username
 
 @app.on_event("startup")
 def create_default_admin():
@@ -66,19 +94,6 @@ def create_default_admin():
             admin = models.AdminUser(username="admin", hashed_password=hashed)
             db.add(admin)
             db.commit()
-        else:
-            # Check if current hash verifies or is corrupt
-            if not verify_password("Serdar1", user.hashed_password) and not verify_password("admin123", user.hashed_password):
-                # If it doesn't even verify as Serdar1 or admin123, check if it's a valid bcrypt hash
-                try:
-                    h = user.hashed_password
-                    if h.startswith("$2y$"):
-                        h = "$2b$" + h[4:]
-                    bcrypt.checkpw(b"test", h.encode("utf-8"))
-                except ValueError:
-                    # Invalid salt or corrupt hash - repair to Serdar1
-                    user.hashed_password = hash_password("Serdar1")
-                    db.commit()
     except Exception as e:
         print("Admin startup check error:", e)
     finally:
@@ -96,13 +111,13 @@ def login(login_data: schemas.LoginData, db: Session = Depends(database.get_db))
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/api/change-password")
-def change_password(data: schemas.ChangePasswordData, db: Session = Depends(database.get_db)):
+def change_password(data: schemas.ChangePasswordData, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     user = db.query(models.AdminUser).filter(models.AdminUser.username == data.username).first()
     if not user or not verify_password(data.current_password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Mevcut şifre hatalı.")
     
-    if len(data.new_password) < 4:
-        raise HTTPException(status_code=400, detail="Yeni şifre en az 4 karakter olmalıdır.")
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Yeni şifre en az 6 karakter olmalıdır.")
     
     user.hashed_password = hash_password(data.new_password)
     db.commit()
@@ -112,7 +127,33 @@ def change_password(data: schemas.ChangePasswordData, db: Session = Depends(data
 
 @app.get("/api/products", response_model=List[schemas.Product])
 def get_products(db: Session = Depends(database.get_db)):
-    return db.query(models.Product).all()
+    return db.query(models.Product).order_by(models.Product.sort_order.asc(), models.Product.id.asc()).all()
+
+@app.post("/api/products/reorder")
+def reorder_products(payload: dict, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
+    order = payload.get("order", [])
+    for idx, item in enumerate(order):
+        pid = item.get("id") if isinstance(item, dict) else item
+        sort_val = item.get("sort_order", idx) if isinstance(item, dict) else idx
+        if pid is not None:
+            p = db.query(models.Product).filter(models.Product.id == int(pid)).first()
+            if p:
+                p.sort_order = int(sort_val)
+    db.commit()
+    return {"status": "success", "message": "Ürün sıralaması güncellendi."}
+
+@app.post("/api/products/reorder-manuals")
+def reorder_manuals(payload: dict, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
+    order = payload.get("order", [])
+    for idx, item in enumerate(order):
+        pid = item.get("id") if isinstance(item, dict) else item
+        sort_val = item.get("manual_sort_order", idx) if isinstance(item, dict) else idx
+        if pid is not None:
+            p = db.query(models.Product).filter(models.Product.id == int(pid)).first()
+            if p:
+                p.manual_sort_order = int(sort_val)
+    db.commit()
+    return {"status": "success", "message": "Kılavuz sıralaması güncellendi."}
 
 @app.get("/api/products/{product_id}", response_model=schemas.Product)
 def get_product(product_id: int, db: Session = Depends(database.get_db)):
@@ -122,7 +163,7 @@ def get_product(product_id: int, db: Session = Depends(database.get_db)):
     return product
 
 @app.post("/api/products", response_model=schemas.Product)
-def create_product(product: schemas.ProductCreate, db: Session = Depends(database.get_db)):
+def create_product(product: schemas.ProductCreate, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     db_product = models.Product(**product.dict())
     db.add(db_product)
     db.commit()
@@ -134,6 +175,7 @@ def update_product(
     product_id: int,
     product_data: schemas.ProductCreate,
     db: Session = Depends(database.get_db),
+    current_user: str = Depends(get_current_user),
 ):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
@@ -147,7 +189,7 @@ def update_product(
     return product
 
 @app.delete("/api/products/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(database.get_db)):
+def delete_product(product_id: int, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı.")
@@ -164,7 +206,7 @@ def delete_product(product_id: int, db: Session = Depends(database.get_db)):
 # ── Product Images (Task 1: Max 20 photos) ──
 
 @app.post("/api/products/{product_id}/images", response_model=schemas.ProductImage)
-def add_product_image(product_id: int, image_data: schemas.ProductImageCreate, db: Session = Depends(database.get_db)):
+def add_product_image(product_id: int, image_data: schemas.ProductImageCreate, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı.")
@@ -184,7 +226,7 @@ def add_product_image(product_id: int, image_data: schemas.ProductImageCreate, d
     return db_img
 
 @app.post("/api/products/{product_id}/images/batch", response_model=List[schemas.ProductImage])
-def add_product_images_batch(product_id: int, batch_data: dict, db: Session = Depends(database.get_db)):
+def add_product_images_batch(product_id: int, batch_data: dict, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı.")
@@ -212,7 +254,7 @@ def add_product_images_batch(product_id: int, batch_data: dict, db: Session = De
     return created
 
 @app.delete("/api/products/{product_id}/images/{image_id}")
-def delete_product_image(product_id: int, image_id: int, db: Session = Depends(database.get_db)):
+def delete_product_image(product_id: int, image_id: int, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     img = db.query(models.ProductImage).filter(
         models.ProductImage.id == image_id,
         models.ProductImage.product_id == product_id
@@ -228,7 +270,20 @@ def delete_product_image(product_id: int, image_id: int, db: Session = Depends(d
 
 @app.get("/api/references", response_model=List[schemas.Reference])
 def get_references(db: Session = Depends(database.get_db)):
-    return db.query(models.Reference).all()
+    return db.query(models.Reference).order_by(models.Reference.sort_order.asc(), models.Reference.id.asc()).all()
+
+@app.post("/api/references/reorder")
+def reorder_references(payload: dict, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
+    order = payload.get("order", [])
+    for idx, item in enumerate(order):
+        rid = item.get("id") if isinstance(item, dict) else item
+        sort_val = item.get("sort_order", idx) if isinstance(item, dict) else idx
+        if rid is not None:
+            r = db.query(models.Reference).filter(models.Reference.id == int(rid)).first()
+            if r:
+                r.sort_order = int(sort_val)
+    db.commit()
+    return {"status": "success", "message": "Referans sıralaması güncellendi."}
 
 @app.get("/api/references/{reference_id}", response_model=schemas.Reference)
 def get_reference(reference_id: int, db: Session = Depends(database.get_db)):
@@ -238,7 +293,7 @@ def get_reference(reference_id: int, db: Session = Depends(database.get_db)):
     return ref
 
 @app.post("/api/references", response_model=schemas.Reference)
-def create_reference(ref_data: schemas.ReferenceCreate, db: Session = Depends(database.get_db)):
+def create_reference(ref_data: schemas.ReferenceCreate, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     ref = models.Reference(**ref_data.dict())
     db.add(ref)
     db.commit()
@@ -246,7 +301,7 @@ def create_reference(ref_data: schemas.ReferenceCreate, db: Session = Depends(da
     return ref
 
 @app.put("/api/references/{reference_id}", response_model=schemas.Reference)
-def update_reference(reference_id: int, ref_data: schemas.ReferenceCreate, db: Session = Depends(database.get_db)):
+def update_reference(reference_id: int, ref_data: schemas.ReferenceCreate, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     ref = db.query(models.Reference).filter(models.Reference.id == reference_id).first()
     if not ref:
         raise HTTPException(status_code=404, detail="Referans bulunamadı.")
@@ -259,7 +314,7 @@ def update_reference(reference_id: int, ref_data: schemas.ReferenceCreate, db: S
     return ref
 
 @app.delete("/api/references/{reference_id}")
-def delete_reference(reference_id: int, db: Session = Depends(database.get_db)):
+def delete_reference(reference_id: int, db: Session = Depends(database.get_db), current_user: str = Depends(get_current_user)):
     ref = db.query(models.Reference).filter(models.Reference.id == reference_id).first()
     if not ref:
         raise HTTPException(status_code=404, detail="Referans bulunamadı.")
@@ -270,14 +325,20 @@ def delete_reference(reference_id: int, db: Session = Depends(database.get_db)):
 
 # ── Upload Endpoint ──
 
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif", "pdf"}
+
 @app.post("/api/upload")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
     images_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "images"))
     if not os.path.isdir(images_dir):
         images_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "images"))
     os.makedirs(images_dir, exist_ok=True)
     
-    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = file.filename or "image.jpg"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Yalnızca JPG, PNG, WEBP, GIF ve PDF formatları desteklenmektedir.")
+        
     new_filename = f"{uuid.uuid4().hex}.{ext}"
     file_path = os.path.join(images_dir, new_filename)
     

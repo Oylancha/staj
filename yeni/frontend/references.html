@@ -681,6 +681,7 @@
 
   <script src="js/app.js?v=8"></script>
   <script>
+    const esc = window.escapeHtml || (s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
     let allProducts = [];
     let allReferences = [];
     let currentRefImages = [];
@@ -706,16 +707,19 @@
         card.className = 'ref-card animate-fade-in';
         card.onclick = () => openRefModal(ref.id);
 
+        const safeName = esc(ref.company_name);
+        const initials = esc(getInitials(ref.company_name));
+
         let logoHtml = '';
         if (ref.logo_url) {
-          logoHtml = `<img src="${ref.logo_url}" alt="${ref.company_name}" class="ref-logo-img" onerror="this.parentElement.innerHTML='<span class=\\'ref-logo-placeholder\\'>${getInitials(ref.company_name)}</span>'">`;
+          logoHtml = `<img src="${ref.logo_url}" alt="${safeName}" class="ref-logo-img" loading="lazy" decoding="async" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'ref-logo-placeholder\\'>${initials}</span>'">`;
         } else {
-          logoHtml = `<span class="ref-logo-placeholder">${getInitials(ref.company_name)}</span>`;
+          logoHtml = `<span class="ref-logo-placeholder">${initials}</span>`;
         }
 
         card.innerHTML = `
           <div class="ref-logo-box">${logoHtml}</div>
-          <div class="ref-name">${ref.company_name}</div>
+          <div class="ref-name">${safeName}</div>
           <span class="ref-card-hint">Detayları Gör &rarr;</span>
         `;
         container.appendChild(card);
@@ -741,7 +745,7 @@
             <button class="ref-nav-btn prev" onclick="navigateRefImage(-1, event)" title="Önceki resim (Sol Ok)" aria-label="Önceki resim">&#10094;</button>
             <button class="ref-nav-btn next" onclick="navigateRefImage(1, event)" title="Sonraki resim (Sağ Ok)" aria-label="Sonraki resim">&#10095;</button>
           ` : ''}
-          <img id="ref-main-viewer-img" class="ref-viewer-img" src="${currentRefImages[0]}" alt="${companyName} Resim 1" onclick="openLightbox(currentRefImageIndex)" title="Resmi büyütmek için tıklayınız">
+          <img id="ref-main-viewer-img" class="ref-viewer-img" src="${currentRefImages[0]}" alt="${companyName} Resim 1" loading="lazy" decoding="async" onclick="openLightbox(currentRefImageIndex)" title="Resmi büyütmek için tıklayınız">
           ${isMulti ? `
             <div class="ref-viewer-counter" id="ref-viewer-counter">1 / ${total}</div>
             <div class="ref-viewer-hint">&larr; &rarr; Tuşları ile gezinebilirsiniz</div>
@@ -751,7 +755,7 @@
           <div class="ref-photos-strip" id="ref-thumbnails-strip">
             ${currentRefImages.map((url, idx) => `
               <button class="ref-photo-thumb-btn ${idx === 0 ? 'active' : ''}" onclick="selectRefImage(${idx}, event)" title="Resim ${idx + 1}" type="button">
-                <img src="${url}" alt="Küçük resim ${idx + 1}" onerror="this.parentElement.style.display='none'">
+                <img src="${url}" alt="Küçük resim ${idx + 1}" loading="lazy" decoding="async" onerror="this.parentElement.style.display='none'">
               </button>
             `).join('')}
           </div>
@@ -847,7 +851,7 @@
       selectRefImage(currentRefImageIndex + direction);
     }
 
-    function openRefModal(refId) {
+    async function openRefModal(refId) {
       const ref = allReferences.find(r => r.id === refId);
       if (!ref) return;
 
@@ -856,10 +860,12 @@
 
       // Logo
       const logoBox = document.getElementById('modal-logo-container');
+      const safeModalName = esc(ref.company_name);
+      const modalInitials = esc(getInitials(ref.company_name));
       if (ref.logo_url) {
-        logoBox.innerHTML = `<img src="${ref.logo_url}" alt="${ref.company_name}" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.parentElement.innerHTML='<span class=\\'ref-logo-placeholder\\'>${getInitials(ref.company_name)}</span>'">`;
+        logoBox.innerHTML = `<img src="${ref.logo_url}" alt="${safeModalName}" loading="lazy" decoding="async" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'ref-logo-placeholder\\' style=\\'font-size:1.4rem;\\'>${modalInitials}</span>'">`;
       } else {
-        logoBox.innerHTML = `<span class="ref-logo-placeholder" style="font-size:1.4rem;">${getInitials(ref.company_name)}</span>`;
+        logoBox.innerHTML = `<span class="ref-logo-placeholder" style="font-size:1.4rem;">${modalInitials}</span>`;
       }
 
       // Parse product IDs
@@ -887,11 +893,12 @@
             const item = document.createElement('a');
             item.className = 'ref-product-item';
             item.href = `item.html?id=${product.id}`;
-            item.title = `${product.name} sayfasına git`;
+            const safeProdName = esc(product.name);
+            item.title = `${safeProdName} sayfasına git`;
             const thumb = product.image_url || 'images/placeholder.svg';
             item.innerHTML = `
-              <img src="${thumb}" alt="${product.name}" class="ref-product-thumb" onerror="this.src='images/placeholder.svg'">
-              <span class="ref-product-name">${product.name}</span>
+              <img src="${thumb}" alt="${safeProdName}" class="ref-product-thumb" loading="lazy" decoding="async" onerror="this.src='images/placeholder.svg'">
+              <span class="ref-product-name">${safeProdName}</span>
             `;
             productsGrid.appendChild(item);
           }
@@ -902,7 +909,7 @@
         }
       }
 
-      // Parse reference photos (max 20)
+      // Load reference photos strictly on demand when modal opens
       let refImages = [];
       try {
         if (typeof ref.images === 'string') {
@@ -912,6 +919,17 @@
         }
       } catch (e) {
         refImages = [];
+      }
+
+      // If photos not present locally, fetch complete details from API
+      if ((!refImages || refImages.length === 0) && window.ReferenceService && window.ReferenceService.getById) {
+        try {
+          const fullRef = await window.ReferenceService.getById(ref.id);
+          if (fullRef && Array.isArray(fullRef.images) && fullRef.images.length > 0) {
+            refImages = fullRef.images;
+            ref.images = fullRef.images;
+          }
+        } catch (_) {}
       }
 
       currentRefImages = [];
@@ -937,6 +955,9 @@
       const lb = document.getElementById('photo-lightbox');
       if (lb) lb.classList.remove('active');
       document.body.style.overflow = '';
+      const photoContainer = document.getElementById('modal-photos-container');
+      if (photoContainer) photoContainer.innerHTML = '';
+      currentRefImages = [];
     }
 
     function onModalBackdropClick(e) {

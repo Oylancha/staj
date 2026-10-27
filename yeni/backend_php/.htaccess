@@ -14,8 +14,8 @@ RewriteRule .* - [E=HTTP_X_AUTHORIZATION:%{HTTP:X-Authorization}]
 RewriteCond %{HTTP:X-Admin-Token} .
 RewriteRule .* - [E=HTTP_X_ADMIN_TOKEN:%{HTTP:X-Admin-Token}]
 
-# Protect SQLite database files from direct web access
-<FilesMatch "\.(db|sqlite|sqlite3)$">
+# Protect SQLite database files and secret keys from direct web access
+<FilesMatch "\.(db|sqlite|sqlite3|key|ini|log|env)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -24,6 +24,16 @@ RewriteRule .* - [E=HTTP_X_ADMIN_TOKEN:%{HTTP:X-Admin-Token}]
         Deny from all
     </IfModule>
 </FilesMatch>
+
+<Files ".*">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</Files>
 
 # Allow standard HTTP verbs
 <Limit GET POST PUT DELETE OPTIONS HEAD>
